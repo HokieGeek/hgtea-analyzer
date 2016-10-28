@@ -4,7 +4,35 @@ awk '
 BEGIN {
     FS="\t"
 }
-{ print }
+# Process the database first
+# Timestamp       Date    ID      Name    Type    Region  Year    Flush   Purchase Location       Purchase Date   Purchase Price  Ratings Comments        Pictures        Country Leaf Grade      Blended Teas   Blend Ratio     Size    Stocked Aging   Packaging
+FNR == NR && FNR > 1 {
+    if (filter != "" && $0 !~ filter) next
+    teas[$3]=$4
+}
+# Aggregate the journal entries
+# Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
+FNR != NR && FNR > 1 {
+    # num_entries[$4]++
+    ratings[$4","num_entries[$4]++] = $5
+    total_rating[$4] += $5
+}
+END {
+    printf("%-55s\t%s\t%s\t%s\t%s\n", "Name", "Entries", "Mean", "Median", "Mode");
+    for (tid in teas) {
+        rating_count=0
+        mean=0
+        if (num_entries[tid] > 0) {
+            mean=total_rating[tid] / num_entries[tid]
+            # rating_count[ratings[tid","num_entries[
+        }
+        median=-1 #total_rating[tid] / num_entries[tid]
+        mode=-1
+        # mode=total_rating[tid] / num_entries[tid]
+        printf("%-50s\t%d\t%d\t%d\t%d\n", teas[tid], num_entries[tid], mean, median, mode)
+    }
+}
 ' \
+$@ \
 <(curl --silent https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv) \
 <(curl --silent https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv)
