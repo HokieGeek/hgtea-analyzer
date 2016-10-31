@@ -13,20 +13,22 @@ FNR == NR && FNR > 1 {
 # Aggregate the journal entries
 # Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 FNR != NR && FNR > 1 {
-    # num_entries[$4]++
     ratings[$4","num_entries[$4]++] = $5
+    ratings[$4","num_entries[$4]++","$5]++
+    ratings[$4",total"] += $5
     total_rating[$4] += $5
 }
 END {
     printf("%-55s\t%s\t%s\t%s\t%s\n", "Name", "Entries", "Mean", "Median", "Mode");
     for (tid in teas) {
-        rating_count=0
         mean=0
+        median=0
         if (num_entries[tid] > 0) {
-            mean=total_rating[tid] / num_entries[tid]
-            # rating_count[ratings[tid","num_entries[
+            mean=ratings[tid",total"] / num_entries[tid]
+            median=ratings[tid","((num_entries[tid] + 1) / 2)]
+            # rating_list[length(rating_list)] = ratings[tid","num_entries[tid]]
         }
-        median=-1 #total_rating[tid] / num_entries[tid]
+        # median=-1 #total_rating[tid] / num_entries[tid]
         mode=-1
         # mode=total_rating[tid] / num_entries[tid]
         printf("%-50s\t%d\t%d\t%d\t%d\n", teas[tid], num_entries[tid], mean, median, mode)
