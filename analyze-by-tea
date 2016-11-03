@@ -14,7 +14,7 @@ FNR == NR && FNR > 1 {
 # Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 FNR != NR && FNR > 1 {
     ratings[$4","num_entries[$4]++] = $5
-    ratings[$4","num_entries[$4]++","$5]++
+    # ratings[$4","num_entries[$4]++","$5]++
     ratings[$4",total"] += $5
     total_rating[$4] += $5
 }
