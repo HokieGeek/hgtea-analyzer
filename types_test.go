@@ -94,9 +94,43 @@ func TestCreateBadEntry(t *testing.T) {
 }
 
 func TestCreateTea(t *testing.T) {
+	original_tea := []string{
+		time.Now().String(),
+		"1/1/2016",
+		"42",
+		"Name",
+		"Type",
+		"Region",
+		"2016",
+		"2",
+		"Purchase Location",
+		"1/1/2000",
+		"99.99",
+		"Ratings",
+		"Comments",
+		"Pictures",
+		"Country",
+		"Leaf Grade",
+		"Blended Teas",
+		"Blend Ratio",
+		"Size",
+		"TRUE",
+		"FALSE",
+		"0",
+	}
+
+	_, err := newTea(original_tea)
+	if err != nil {
+		t.Fatalf("Unable to create Tea: %s\n", err)
+	}
+
 	t.Skip("TODO")
 }
 
 func TestCreateBadTea(t *testing.T) {
-	t.Skip("TODO")
+	incomplete_tea := []string{time.Now().String(), "TEST"}
+	_, err := newTea(incomplete_tea)
+	if err == nil {
+		t.Fatal("Successfully created badly formatted tea")
+	}
 }
