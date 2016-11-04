@@ -82,7 +82,7 @@ func (t *Tea) Average() int {
 }
 
 func (t *Tea) Median() int {
-	if t.median == 0 && len(t.Log) > 0 {
+	if t.median == 0 && len(t.Log) > 1 {
 		ratings := make([]int, len(t.Log))
 		var count int
 		for _, entry := range t.Log {
@@ -92,6 +92,8 @@ func (t *Tea) Median() int {
 		sort.Ints(ratings)
 
 		t.median = ratings[((len(t.Log) + 1) / 2)]
+		// } else if t.median == 0 && len(t.Log) == 1 {
+		// t.median = t.Log[
 	}
 
 	return t.median
@@ -120,8 +122,10 @@ func (t *Tea) Mode() int {
 func (t *Tea) String() string {
 	var buf bytes.Buffer
 
-	buf.WriteString(strconv.Itoa(t.Year))
-	buf.WriteString(" ")
+	if t.Year > 0 {
+		buf.WriteString(strconv.Itoa(t.Year))
+		buf.WriteString(" ")
+	}
 	buf.WriteString(t.Name)
 
 	return buf.String()

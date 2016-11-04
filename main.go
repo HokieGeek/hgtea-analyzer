@@ -34,5 +34,16 @@ func main() {
 		for _, tea := range db {
 			fmt.Printf("%-60s %6d %6d %6d %6d\n", tea.String(), len(tea.Log), tea.Average(), tea.Median(), tea.Mode())
 		}
+		// } else if os.Args[1] == "journal" || os.Args[1] == "log" {
+		// db, err := buildDatabase(*stockedFlag, *samplesFlag, typesFilter)
+		// if err != nil {
+		// log.Fatal(err)
+		// }
+
+		// if len(os.Args) > 2 {
+		// for _,entries := range db[os.Args[2] {
+		// fmt.Println(entries)
+		// }
+		// }
 	}
 }
