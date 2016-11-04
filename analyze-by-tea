@@ -25,7 +25,11 @@ END {
         median=0
         if (num_entries[tid] > 0) {
             mean=ratings[tid",total"] / num_entries[tid]
-            median=ratings[tid","((num_entries[tid] + 1) / 2)]
+            if (num_entries[tid] == 1) {
+                median=ratings[tid",0"]
+            } else {
+                median=ratings[tid","((num_entries[tid] + 1) / 2)]
+            }
             # rating_list[length(rating_list)] = ratings[tid","num_entries[tid]]
         }
         # median=-1 #total_rating[tid] / num_entries[tid]
