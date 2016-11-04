@@ -46,6 +46,7 @@ func newEntry(entry []string) (*Entry, error) {
 type Tea struct {
 	Id      int
 	Name    string
+	Year    int
 	Type    string
 	Stocked bool
 	Aging   bool
@@ -83,11 +84,13 @@ func (t *Tea) Average() int {
 func (t *Tea) Median() int {
 	if t.median == 0 && len(t.Log) > 0 {
 		ratings := make([]int, len(t.Log))
+		var count int
 		for _, entry := range t.Log {
-			ratings = append(ratings, entry.Rating)
+			ratings[count] = entry.Rating
+			count++
 		}
-
 		sort.Ints(ratings)
+
 		t.median = ratings[((len(t.Log) + 1) / 2)]
 	}
 
@@ -96,10 +99,11 @@ func (t *Tea) Median() int {
 
 func (t *Tea) Mode() int {
 	if t.mode == 0 && len(t.Log) > 0 {
-		ratings := make(map[int]int)
+		ratings := make([]int, 5)
 		for _, entry := range t.Log {
 			ratings[entry.Rating]++
 		}
+
 		var max int
 		for rating, count := range ratings {
 			if count > ratings[max] {
@@ -116,18 +120,15 @@ func (t *Tea) Mode() int {
 func (t *Tea) String() string {
 	var buf bytes.Buffer
 
-	buf.WriteString("[")
-	buf.WriteString(strconv.Itoa(t.Id))
-	buf.WriteString("] ")
+	buf.WriteString(strconv.Itoa(t.Year))
+	buf.WriteString(" ")
 	buf.WriteString(t.Name)
-	buf.WriteString(", ")
-	buf.WriteString(strconv.Itoa(len(t.Log)))
-	buf.WriteString(" entries")
 
 	return buf.String()
 }
 
 func newTea(data []string) (*Tea, error) {
+	// fmt.Printf("%v\n", data)
 	if len(data) < 22 {
 		return nil, errors.New("Data badly formatted")
 	}
@@ -140,11 +141,18 @@ func newTea(data []string) (*Tea, error) {
 		return nil, err
 	}
 	t.Name = data[3]
-	t.Stocked = (data[20] == "TRUE")
-	t.Aging = (data[21] == "TRUE")
-	t.Size = data[19]
-	t.Log = make(map[string]Entry)
+	t.Stocked = (data[19] == "TRUE")
+	t.Type = data[4]
+	t.Aging = (data[20] == "TRUE")
+	t.Size = data[18]
+	if data[6] != "" {
+		t.Year, err = strconv.Atoi(data[6])
+		if err != nil {
+			return nil, err
+		}
+	}
 
+	t.Log = make(map[string]Entry)
 	t.average = 0
 	t.median = 0
 	t.mode = 0
