@@ -78,6 +78,44 @@ var testEntries = [][]string{
 		"74i9ao3ahda92h",
 		"7",
 	},
+	[]string{
+		time.Now().String(), // 0
+		"1/1/1999",
+		"0123",
+		"920", // 3
+		"1",
+		"comment",
+		"pics", // 6
+		"1m 1s",
+		"0",
+		"212", // 9
+		"01i90o3ahda92h",
+		"",
+	},
+}
+
+var expectedValues = []int{
+	1, // Average
+	2, // Median
+	1, // Mode
+}
+
+func CreateTestTea() (*Tea, error) {
+	original_tea := testTeas[0]
+
+	tea, err := newTea(original_tea)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range testEntries {
+		err = tea.Add(entry)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tea, nil
 }
 
 func AreEntriesEqual(expected []string, received *Entry) (bool, error) {
@@ -315,29 +353,39 @@ func TestTeaAdd(t *testing.T) {
 }
 
 func TestTeaAverage(t *testing.T) {
-	original_tea := testTeas[0]
-
-	tea, err := newTea(original_tea)
+	tea, err := CreateTestTea()
 	if err != nil {
-		t.Fatalf("Unable to create Tea: %s\n", err)
+		t.Fatalf("Error creating a tea: %s\n", err)
 	}
 
-	for _, entry := range testEntries {
-		err = tea.Add(entry)
-		if err != nil {
-			t.Fatalf("Error adding entry to tea: %s\n", err)
-		}
+	val := tea.Average()
+	if expectedValues[0] != val {
+		t.Errorf("Calculated average %d does not match expected: %d\n", val, expectedValues[0])
 	}
-
-	// TODO: check each entry
 }
 
 func TestTeaMedian(t *testing.T) {
-	t.Skip("TODO")
+	tea, err := CreateTestTea()
+	if err != nil {
+		t.Fatalf("Error creating a tea: %s\n", err)
+	}
+
+	val := tea.Median()
+	if expectedValues[1] != val {
+		t.Errorf("Calculated median %d does not match expected: %d\n", val, expectedValues[1])
+	}
 }
 
 func TestTeaMode(t *testing.T) {
-	t.Skip("TODO")
+	tea, err := CreateTestTea()
+	if err != nil {
+		t.Fatalf("Error creating a tea: %s\n", err)
+	}
+
+	val := tea.Mode()
+	if expectedValues[2] != val {
+		t.Errorf("Calculated mode %d does not match expected: %d\n", val, expectedValues[2])
+	}
 }
 
 func TestTeaString(t *testing.T) {
