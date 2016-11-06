@@ -40,7 +40,7 @@ func BuildDatabase(stockedOnly bool, samplesOnly bool, types map[string]struct{}
 		}
 
 		// Now apply the filters
-		if stockedOnly && !t.Stocked {
+		if stockedOnly && !t.Storage.Stocked {
 			continue
 		}
 

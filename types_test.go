@@ -192,31 +192,32 @@ func AreTeasEqual(expected []string, received *Tea) (bool, error) {
 		return false, errors.New(fmt.Sprintf("Type field '%s' did not match expected '%s'", received.Type, expected[4]))
 	}
 
-	// if expected[5] != received.Region {
-	// return false, errors.New(fmt.Sprintf("Region field '%s' did not match expected '%s'", received.Region, expected[5]))
-	// }
-
-	dummy_int, _ = strconv.Atoi(expected[6])
-	if dummy_int != received.Year {
-		return false, errors.New(fmt.Sprintf("Year field '%s' did not match expected '%s'", received.Year, expected[6]))
+	if expected[5] != received.Origin.Region {
+		return false, errors.New(fmt.Sprintf("Region field '%s' did not match expected '%s'", received.Origin.Region, expected[5]))
 	}
 
-	// dummy_int, _ = strconv.Atoi(expected[7])
-	// if dummy_int != received.Flush {
-	// return false, errors.New(fmt.Sprintf("Flush field '%s' did not match expected '%s'", received.Flush, expected[7]))
-	// }
+	dummy_int, _ = strconv.Atoi(expected[6])
+	if dummy_int != received.Picked.Year {
+		return false, errors.New(fmt.Sprintf("Year field '%s' did not match expected '%s'", received.Picked.Year, expected[6]))
+	}
 
-	// if expected[8] != received.PurchaseLocation {
-	// return false, errors.New(fmt.Sprintf("PurchaseLocation field '%s' did not match expected '%s'", received.PurchaseLocation, expected[8]))
-	// }
+	dummy_float, _ := strconv.ParseFloat(expected[7], 64)
+	if dummy_float != received.Picked.Flush {
+		return false, errors.New(fmt.Sprintf("Flush field '%s' did not match expected '%s'", received.Picked.Flush, expected[7]))
+	}
 
-	// if expected[9] != received.PurchaseDate {
-	// return false, errors.New(fmt.Sprintf("PurchaseDate field '%s' did not match expected '%s'", received.PurchaseDate, expected[9]))
-	// }
+	if expected[8] != received.Purchased.Location {
+		return false, errors.New(fmt.Sprintf("PurchaseLocation field '%s' did not match expected '%s'", received.Purchased.Location, expected[8]))
+	}
 
-	// if expected[10] != received.PurchasePrice {
-	// return false, errors.New(fmt.Sprintf("PurchasePrice field '%s' did not match expected '%s'", received.PurchasePrice, expected[10]))
-	// }
+	if expected[9] != received.Purchased.Date {
+		return false, errors.New(fmt.Sprintf("PurchaseDate field '%s' did not match expected '%s'", received.Purchased.Date, expected[9]))
+	}
+
+	dummy_float, _ = strconv.ParseFloat(expected[10], 64)
+	if dummy_float != received.Purchased.Price {
+		return false, errors.New(fmt.Sprintf("PurchasePrice field '%s' did not match expected '%s'", received.Purchased.Price, expected[10]))
+	}
 
 	// if expected[11] != received.Ratings {
 	// return false, errors.New(fmt.Sprintf("Ratings field '%s' did not match expected '%s'", received.Ratings, expected[11]))
@@ -230,13 +231,13 @@ func AreTeasEqual(expected []string, received *Tea) (bool, error) {
 	// return false, errors.New(fmt.Sprintf("Pictures field '%s' did not match expected '%s'", received.Pictures, expected[13]))
 	// }
 
-	// if expected[14] != received.Country {
-	// return false, errors.New(fmt.Sprintf("Country field '%s' did not match expected '%s'", received.Country, expected[14]))
-	// }
+	if expected[14] != received.Origin.Country {
+		return false, errors.New(fmt.Sprintf("Country field '%s' did not match expected '%s'", received.Origin.Country, expected[14]))
+	}
 
-	// if expected[15] != received.LeafGrade {
-	// return false, errors.New(fmt.Sprintf("LeafGrade field '%s' did not match expected '%s'", received.LeafGrade, expected[15]))
-	// }
+	if expected[15] != received.LeafGrade {
+		return false, errors.New(fmt.Sprintf("LeafGrade field '%s' did not match expected '%s'", received.LeafGrade, expected[15]))
+	}
 
 	// if expected[16] != received.BlendedTeas {
 	// return false, errors.New(fmt.Sprintf("BlendedTeas field '%s' did not match expected '%s'", received.BlendedTeas, expected[16]))
@@ -251,19 +252,19 @@ func AreTeasEqual(expected []string, received *Tea) (bool, error) {
 	}
 
 	dummy_bool := expected[19] == "TRUE"
-	if dummy_bool != received.Stocked {
-		return false, errors.New(fmt.Sprintf("Stocked field '%s' did not match expected '%s'", received.Stocked, dummy_bool))
+	if dummy_bool != received.Storage.Stocked {
+		return false, errors.New(fmt.Sprintf("Stocked field '%s' did not match expected '%s'", received.Storage.Stocked, dummy_bool))
 	}
 
 	dummy_bool = expected[20] == "TRUE"
-	if dummy_bool != received.Aging {
-		return false, errors.New(fmt.Sprintf("Aging field '%s' did not match expected '%s'", received.Aging, dummy_bool))
+	if dummy_bool != received.Storage.Aging {
+		return false, errors.New(fmt.Sprintf("Aging field '%s' did not match expected '%s'", received.Storage.Aging, dummy_bool))
 	}
 
-	// dummy_int, _ = strconv.Atoi(expected[21])
-	// if dummy_int != received.Packaging {
-	// return false, errors.New(fmt.Sprintf("Packaging field '%s' did not match expected '%s'", received.Packaging, expected[21]))
-	// }
+	dummy_int, _ = strconv.Atoi(expected[21])
+	if dummy_int != received.Purchased.Packaging {
+		return false, errors.New(fmt.Sprintf("Packaging field '%s' did not match expected '%s'", received.Purchased.Packaging, expected[21]))
+	}
 
 	return true, nil
 }
