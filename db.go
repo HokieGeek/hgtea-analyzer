@@ -1,4 +1,4 @@
-package main
+package hgtealib
 
 import (
 	"encoding/csv"
@@ -25,7 +25,7 @@ func getSheet(url string) ([][]string, error) {
 	return db, nil
 }
 
-func buildDatabase(stockedOnly bool, samplesOnly bool, types map[string]struct{}) (map[int]Tea, error) {
+func BuildDatabase(stockedOnly bool, samplesOnly bool, types map[string]struct{}) (map[int]Tea, error) {
 	// Get the tea database
 	db, err := getSheet("https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv")
 	if err != nil {

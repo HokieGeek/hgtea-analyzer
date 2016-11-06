@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/hokiegeek/hgtealib"
 	"log"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ func main() {
 			}
 		}
 
-		db, err := buildDatabase(*stockedFlag, *samplesFlag, typesFilter)
+		db, err := hgtealib.BuildDatabase(*stockedFlag, *samplesFlag, typesFilter)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -2,7 +2,7 @@
 
 args *.go Dockerfile ed.vim
 
-edit main.go
+edit hgtea/main.go
 
 tabnew db_test.go
 topleft vsplit
