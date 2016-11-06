@@ -1,6 +1,6 @@
 #!/usr/bin/vim -S
 
-args *.go Dockerfile ed.vim
+args *.go Dockerfile README.md ed.vim
 
 edit hgtea/main.go
 
