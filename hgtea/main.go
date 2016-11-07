@@ -6,6 +6,7 @@ import (
 	"github.com/hokiegeek/hgtealib"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -50,8 +51,8 @@ func main() {
 
 		logCmd.Parse(flag.Args()[1:])
 
-		headerFmt := "%-21s\t%-60s\t%10s\t%s\n"
-		entryFmt := "%s\t%-60s\t%10s\t%d\n"
+		headerFmt := "%-21s\t%-60s\t%10s\t%s\t%s\t%s\t%s\t%s\n"
+		entryFmt := "%s\t%-60s\t%10s\t%d\t%v\t%d\t%d\t%s\n"
 		if *noPrettyPrintFlag {
 			re := regexp.MustCompile("%-?[0-9]+")
 			headerFmt = re.ReplaceAllString(headerFmt, "%")
@@ -68,13 +69,13 @@ func main() {
 			SessionInstance     string
 			Fixins              []string
 		*/
-		fmt.Printf(headerFmt, "Time", "Tea", "Steep Time", "Rating")
+		fmt.Printf(headerFmt, "Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel", "Temp", "Session")
 
-		teas, _ := db.Teas(filter)
+		// teas, _ := db.Teas(filter)
 		log, _ := db.Log(filter)
 		for _, v := range log {
-			tea := teas[v.Id]
-			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating)
+			// tea := teas[v.Id]
+			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), strconv.Itoa(v.Id), v.SteepTime, v.Rating, v.Fixins, v.SteepingVessel, v.SteepingTemperature, v.SessionInstance)
 		}
 		/*
 			tea := teas[0]
