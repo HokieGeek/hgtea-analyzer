@@ -14,8 +14,6 @@ import (
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
 	Id                  int
-	Date                string // TODO
-	Time                string // TODO
 	DateTime            time.Time
 	Rating              int
 	Comments            string
@@ -223,9 +221,6 @@ func newEntry(entry []string) (*Entry, error) {
 	}
 
 	e := new(Entry)
-
-	// e.Date = entry[1]
-	// e.Time = entry[2]
 
 	e.Id, _ = strconv.Atoi(entry[3])
 	dateTime, err := getEntryTime(entry[1], entry[2])

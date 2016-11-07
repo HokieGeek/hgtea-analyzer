@@ -70,8 +70,8 @@ func main() {
 		*/
 		fmt.Printf(headerFmt, "Time", "Tea", "Steep Time", "Rating")
 
-		teas, _ := db.Teas(hgtealib.NewFilter())
-		log, _ := db.Log(hgtealib.NewFilter())
+		teas, _ := db.Teas(filter)
+		log, _ := db.Log(filter)
 		for _, v := range log {
 			tea := teas[v.Id]
 			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating)
