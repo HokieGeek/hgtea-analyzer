@@ -6,7 +6,6 @@ import (
 	"github.com/hokiegeek/hgtealib"
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -16,6 +15,7 @@ func main() {
 	log_url := "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
 
 	proxySocks5 := flag.String("proxy-socks5", "", "Use the given proxy")
+
 	stockedFlag := flag.Bool("stocked", false, "Only display stocked teas")
 	// samplesFlag := flag.Bool("samples", false, "Only display tea samples")
 	teaTypes := flag.String("types", "", "Comma-delimited list of tea types to select")
@@ -39,10 +39,27 @@ func main() {
 	command := flag.Arg(0)
 
 	if command == "teas" {
-		fmt.Printf("%-60s %4s %6s %8s\n", "Name", "Year", "Entries", "Flush")
+		/*
+			// Id            int
+			// Name          string
+			Type          string
+			// Picked.Year  int
+			// Picked.Flush Flush
+			// Origin.Country string
+			// Origin.Region  string
+			Storage.Stocked bool
+			Storage.Aging   bool
+			Purchased.Location  string
+			Purchased.Date      string
+			Purchased.Price     float64
+			Purchased.Packaging int
+			Size          string
+			LeafGrade     string
+		*/
+		fmt.Printf("%3s\t%-60s\t%4s\t%9s\t%30s\t%6s\n", "Id", "Name", "Year", "Flush", "Origin", "Entries")
 		teas, _ := db.Teas(filter)
 		for _, tea := range teas {
-			fmt.Printf("%-60s %d %7d %8f\n", tea.Name, tea.Picked.Year, tea.LogLen(), tea.Picked.Flush)
+			fmt.Printf("%3d\t%-60s\t%d\t%9s\t%30s\t%7d\n", tea.Id, tea.Name, tea.Picked.Year, tea.Picked.Flush, tea.Origin.String(), tea.LogLen())
 		}
 	} else if command == "log" {
 		// if len(flag.Args()) > 0 {
@@ -75,9 +92,10 @@ func main() {
 		// teas, _ := db.Teas(filter)
 		log, _ := db.Log(filter)
 		for _, v := range log {
-			// tea := teas[v.Id]
-			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), strconv.Itoa(v.Id), v.SteepTime, v.Rating, v.Fixins, v.SteepingVessel, v.SteepingTemperature, v.SessionInstance)
+			tea, _ := db.Tea(v.Id)
+			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating, v.Fixins, v.SteepingVessel, v.SteepingTemperature, v.SessionInstance)
 		}
+		// fmt.Println(len(teas))
 		/*
 			tea := teas[0]
 			for _, v := range tea.Log() {

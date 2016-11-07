@@ -210,7 +210,7 @@ func AreTeasEqual(expected []string, received *Tea) (bool, error) {
 	}
 
 	dummy_float, _ := strconv.ParseFloat(expected[7], 64)
-	if dummy_float != received.Picked.Flush {
+	if Flush(dummy_float) != received.Picked.Flush {
 		return false, errors.New(fmt.Sprintf("Flush field '%s' did not match expected '%s'", received.Picked.Flush, expected[7]))
 	}
 

@@ -11,6 +11,33 @@ import (
 	"time"
 )
 
+type Flush float64
+
+const (
+	First     Flush = 1.0
+	InBetween Flush = 1.5
+	Second    Flush = 2.0
+	Monsoon   Flush = 3.0
+	Autumn    Flush = 4.0
+)
+
+var flushes = []string{"First", "InBetween", "Second", "Monsoon", "Autumn"}
+
+func (f Flush) String() string {
+	if f == First {
+		return "First"
+	} else if f == InBetween {
+		return "InBetween"
+	} else if f == Second {
+		return "Second"
+	} else if f == Monsoon {
+		return "Monsoon"
+	} else if f == Autumn {
+		return "Autumn"
+	}
+	return ""
+}
+
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
 	Id                  int
@@ -44,9 +71,21 @@ type TeaOrigin struct {
 	Region  string
 }
 
+func (o TeaOrigin) String() string {
+	var buf bytes.Buffer
+
+	if o.Region != "" {
+		buf.WriteString(o.Region)
+		buf.WriteString(", ")
+	}
+	buf.WriteString(o.Country)
+
+	return buf.String()
+}
+
 type TeaPickPeriod struct {
 	Year  int
-	Flush float64
+	Flush Flush
 }
 
 type TeaStorageState struct {
@@ -95,7 +134,6 @@ func (t *Tea) Log() []Entry {
 }
 
 func (t *Tea) LogLen() int {
-	log.Printf("%d\n", len(t.logSortedKeys))
 	return len(t.log)
 }
 
@@ -272,10 +310,11 @@ func newTea(data []string) (*Tea, error) {
 		}
 	}
 	if data[7] != "" {
-		t.Picked.Flush, err = strconv.ParseFloat(data[7], 64)
+		dummy_float, err := strconv.ParseFloat(data[7], 64)
 		if err != nil {
 			return nil, err
 		}
+		t.Picked.Flush = Flush(dummy_float)
 	}
 
 	t.Purchased.Location = data[8]

@@ -2,6 +2,8 @@ package hgtealib
 
 import (
 	"encoding/csv"
+	"errors"
+	"fmt"
 	"golang.org/x/net/proxy"
 	"net/http"
 	"sort"
@@ -33,8 +35,12 @@ func (f *Filter) SamplesOnly() *Filter {
 }
 
 func (f *Filter) Types(v []string) *Filter {
-	for _, t := range v {
-		f.Type(t)
+	if len(v) > 0 {
+		for _, t := range v {
+			if t != "" {
+				f.Type(t)
+			}
+		}
 	}
 	return f
 }
@@ -77,6 +83,13 @@ func (d *HgTeaDb) Teas(filter *Filter) (map[int]Tea, error) {
 	return teas, nil
 }
 
+func (d *HgTeaDb) Tea(id int) (Tea, error) {
+	if val, ok := d.teas[id]; ok {
+		return val, nil
+	}
+	return *new(Tea), errors.New(fmt.Sprintf("Could not retrieve Tea by id: %d", id))
+}
+
 func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 	log := make([]Entry, 0)
 	for _, k := range d.logSortedKeys {
@@ -84,9 +97,6 @@ func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 	}
 	return log, nil
 }
-
-/*
- */
 
 func New(teas_url, log_url, socks5Proxy string) (*HgTeaDb, error) {
 	db := new(HgTeaDb)
