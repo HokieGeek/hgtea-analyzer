@@ -2,6 +2,7 @@ package hgtealib
 
 import (
 	"encoding/csv"
+	"golang.org/x/net/proxy"
 	"net/http"
 	"sort"
 	"strconv"
@@ -87,11 +88,11 @@ func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 /*
  */
 
-func New(teas_url string, log_url string) (*HgTeaDb, error) {
+func New(teas_url, log_url, socks5Proxy string) (*HgTeaDb, error) {
 	db := new(HgTeaDb)
 
 	// Get the tea database
-	teas, err := getSheet(teas_url)
+	teas, err := getSheet(teas_url, socks5Proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func New(teas_url string, log_url string) (*HgTeaDb, error) {
 	}
 
 	// Add the journal entries
-	journal, err := getSheet(log_url)
+	journal, err := getSheet(log_url, socks5Proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +138,27 @@ func New(teas_url string, log_url string) (*HgTeaDb, error) {
 	return db, nil
 }
 
-func getSheet(url string) ([][]string, error) {
-	response, err := http.Get(url)
+func getSheet(url, socks5Proxy string) ([][]string, error) {
+	var response *http.Response
+	var err error
+	if socks5Proxy != "" {
+		dialer, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
+		if err != nil {
+			return nil, err
+		}
+		httpTransport := &http.Transport{}
+		httpClient := &http.Client{Transport: httpTransport}
+		httpTransport.Dial = dialer.Dial
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		response, err = httpClient.Do(req)
+	} else {
+		response, err = http.Get(url)
+	}
 	if err != nil {
 		return nil, err
 	}

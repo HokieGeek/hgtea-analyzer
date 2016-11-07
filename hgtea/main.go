@@ -15,6 +15,7 @@ func main() {
 	teas_url := "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
 	log_url := "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
 
+	proxySocks5 := flag.String("proxy-socks5", "", "Use the given proxy")
 	stockedFlag := flag.Bool("stocked", false, "Only display stocked teas")
 	// samplesFlag := flag.Bool("samples", false, "Only display tea samples")
 	teaTypes := flag.String("types", "", "Comma-delimited list of tea types to select")
@@ -30,7 +31,7 @@ func main() {
 	// }
 	filter.Types(strings.Split(*teaTypes, ","))
 
-	db, err := hgtealib.New(teas_url, log_url)
+	db, err := hgtealib.New(teas_url, log_url, *proxySocks5)
 	if err != nil {
 		log.Fatal(err)
 	}
