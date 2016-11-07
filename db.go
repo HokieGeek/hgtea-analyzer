@@ -3,13 +3,15 @@ package hgtealib
 import (
 	"encoding/csv"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type HgTeaDb struct {
 	teas          map[int]Tea
-	log           []*Entry
+	log           map[time.Time]Entry
 	logSortedKeys TimeSlice
 }
 
@@ -74,15 +76,16 @@ func (d *HgTeaDb) Teas(filter *Filter) (map[int]Tea, error) {
 	return teas, nil
 }
 
-/*
-func (d *HgTeaDb) Log(filter *Filter) (map[time.Time]*Entry, error) {
-	teas := make(map[time.Time]Tea)
-	for k, v := range d.log {
-		log[k] = v
+func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
+	log := make([]Entry, 0)
+	for _, k := range d.logSortedKeys {
+		log = append(log, d.log[k])
 	}
 	return log, nil
 }
-*/
+
+/*
+ */
 
 func New(teas_url string, log_url string) (*HgTeaDb, error) {
 	db := new(HgTeaDb)
@@ -109,12 +112,22 @@ func New(teas_url string, log_url string) (*HgTeaDb, error) {
 		return nil, err
 	}
 
-	db.log = make([]*Entry, 0)
+	// db.log = make([]*Entry, 0)
+	db.log = make(map[time.Time]Entry)
 	for _, entry := range journal[1:] {
+		e, err := newEntry(entry)
+		if err != nil {
+			return nil, err
+		}
+
+		db.log[e.DateTime] = *e
+		db.logSortedKeys = append(db.logSortedKeys, e.DateTime)
+		sort.Sort(db.logSortedKeys)
+
 		id, _ := strconv.Atoi(entry[3])
-		// TODO: also, add it to db.log
 		if tea, ok := db.teas[id]; ok {
-			err := tea.Add(entry)
+			err := tea.Add(*e)
+			db.teas[id] = tea // TODO: why do I have to do this?
 			if err != nil {
 				return nil, err
 			}

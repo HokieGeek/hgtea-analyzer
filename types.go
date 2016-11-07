@@ -3,7 +3,6 @@ package hgtealib
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"log"
 	"regexp"
 	"sort"
@@ -14,6 +13,7 @@ import (
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
+	Id                  int
 	Date                string // TODO
 	Time                string // TODO
 	DateTime            time.Time
@@ -80,19 +80,10 @@ type Tea struct {
 	mode          int
 }
 
-func (t *Tea) Add(entry []string) error {
-	e, err := newEntry(entry)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("> %s: %d, ", e.DateTime, len(t.logSortedKeys))
-	t.logSortedKeys = append(t.logSortedKeys, e.DateTime)
-	fmt.Printf("%d\n", len(t.logSortedKeys))
-	// log.Printf("%s: %d\n", e.DateTime, len(t.logSortedKeys))
-	// sort.Sort(t.logSortedKeys)
-
-	t.log[e.DateTime] = *e
+func (t *Tea) Add(entry Entry) error {
+	t.log[entry.DateTime] = entry
+	t.logSortedKeys = append(t.logSortedKeys, entry.DateTime)
+	sort.Sort(t.logSortedKeys)
 
 	return nil
 }
@@ -233,9 +224,10 @@ func newEntry(entry []string) (*Entry, error) {
 
 	e := new(Entry)
 
-	e.Date = entry[1]
-	e.Time = entry[2]
+	// e.Date = entry[1]
+	// e.Time = entry[2]
 
+	e.Id, _ = strconv.Atoi(entry[3])
 	dateTime, err := getEntryTime(entry[1], entry[2])
 	if err != nil {
 		return nil, err

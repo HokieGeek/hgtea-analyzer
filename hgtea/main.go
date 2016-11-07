@@ -69,12 +69,19 @@ func main() {
 			Fixins              []string
 		*/
 		fmt.Printf(headerFmt, "Time", "Tea", "Steep Time", "Rating")
+
 		teas, _ := db.Teas(hgtealib.NewFilter())
-		tea := teas[0]
-		fmt.Printf("%d vs %d\n", tea.LogLen(), len(tea.Log()))
-		for _, v := range tea.Log() {
+		log, _ := db.Log(hgtealib.NewFilter())
+		for _, v := range log {
+			tea := teas[v.Id]
 			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating)
 		}
+		/*
+			tea := teas[0]
+			for _, v := range tea.Log() {
+				fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating)
+			}
+		*/
 		// entries, _ := db.Log(new(Filter))
 		// for _, entry := range entries {
 		// fmt.Println(entry)
