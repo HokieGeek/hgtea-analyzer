@@ -4,42 +4,40 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
 	Date                string // TODO
 	Time                string // TODO
+	DateTime            time.Time
 	Rating              int
 	Comments            string
-	SteepTime           string
+	SteepTime           time.Duration
 	SteepingVessel      int
 	SteepingTemperature int
 	SessionInstance     string
 	Fixins              []string
 }
 
-func newEntry(entry []string) (*Entry, error) {
-	if len(entry) < 11 {
-		return nil, errors.New("Invalid data")
-	}
+type TimeSlice []time.Time
 
-	e := new(Entry)
+func (e TimeSlice) Len() int {
+	return len(e)
+}
 
-	e.Date = entry[1]
-	e.Time = entry[2]
-	e.Rating, _ = strconv.Atoi(entry[4])
-	e.Comments = entry[5]
-	e.SteepTime = entry[7]
-	e.SteepingVessel, _ = strconv.Atoi(entry[8])
-	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
-	e.SessionInstance = entry[10]
-	e.Fixins = strings.Split(entry[11], ";")
+func (e TimeSlice) Less(i, j int) bool {
+	return e[i].Before(e[j])
+}
 
-	return e, nil
+func (e TimeSlice) Swap(i, j int) {
+	e[i], e[j] = e[j], e[i]
 }
 
 // Timestamp       Date    ID      Name    Type    Region  Year    Flush   Purchase Location       Purchase Date   Purchase Price  Ratings Comments        Pictures        Country Leaf Grade      Blended Teas   Blend Ratio     Size    Stocked Aging   Packaging
@@ -66,19 +64,20 @@ type TeaPurchaseInfo struct {
 }
 
 type Tea struct {
-	Id        int
-	Name      string
-	Type      string
-	Picked    TeaPickPeriod
-	Origin    TeaOrigin
-	Storage   TeaStorageState
-	Purchased TeaPurchaseInfo
-	Size      string
-	LeafGrade string // TODO: enum
-	Log       map[string]Entry
-	average   int
-	median    int
-	mode      int
+	Id            int
+	Name          string
+	Type          string
+	Picked        TeaPickPeriod
+	Origin        TeaOrigin
+	Storage       TeaStorageState
+	Purchased     TeaPurchaseInfo
+	Size          string
+	LeafGrade     string // TODO: enum
+	log           map[time.Time]Entry
+	logSortedKeys TimeSlice
+	average       int
+	median        int
+	mode          int
 }
 
 func (t *Tea) Add(entry []string) error {
@@ -87,46 +86,64 @@ func (t *Tea) Add(entry []string) error {
 		return err
 	}
 
-	ts := fmt.Sprintf("%s_%s", e.Date, e.Time)
-	t.Log[ts] = *e
+	fmt.Printf("> %s: %d, ", e.DateTime, len(t.logSortedKeys))
+	t.logSortedKeys = append(t.logSortedKeys, e.DateTime)
+	fmt.Printf("%d\n", len(t.logSortedKeys))
+	// log.Printf("%s: %d\n", e.DateTime, len(t.logSortedKeys))
+	// sort.Sort(t.logSortedKeys)
+
+	t.log[e.DateTime] = *e
 
 	return nil
 }
 
+func (t *Tea) Log() []Entry {
+	log := make([]Entry, 0)
+	for _, k := range t.logSortedKeys {
+		log = append(log, t.log[k])
+	}
+	return log
+}
+
+func (t *Tea) LogLen() int {
+	log.Printf("%d\n", len(t.logSortedKeys))
+	return len(t.log)
+}
+
 func (t *Tea) Average() int {
-	if t.average == 0 && len(t.Log) > 0 {
+	if t.average == 0 && len(t.log) > 0 {
 		var total int
-		for _, entry := range t.Log {
+		for _, entry := range t.log {
 			total += entry.Rating
 		}
-		t.average = total / len(t.Log)
+		t.average = total / len(t.log)
 	}
 
 	return t.average
 }
 
 func (t *Tea) Median() int {
-	if t.median == 0 && len(t.Log) > 1 {
-		ratings := make([]int, len(t.Log))
+	if t.median == 0 && len(t.log) > 1 {
+		ratings := make([]int, len(t.log))
 		var count int
-		for _, entry := range t.Log {
+		for _, entry := range t.log {
 			ratings[count] = entry.Rating
 			count++
 		}
 		sort.Ints(ratings)
 
-		t.median = ratings[((len(t.Log) + 1) / 2)]
-		// } else if t.median == 0 && len(t.Log) == 1 {
-		// t.median = t.Log[
+		t.median = ratings[((len(t.log) + 1) / 2)]
+		// } else if t.median == 0 && len(t.log) == 1 {
+		// t.median = t.log[
 	}
 
 	return t.median
 }
 
 func (t *Tea) Mode() int {
-	if t.mode == 0 && len(t.Log) > 0 {
+	if t.mode == 0 && len(t.log) > 0 {
 		ratings := make([]int, 5)
-		for _, entry := range t.Log {
+		for _, entry := range t.log {
 			ratings[entry.Rating]++
 		}
 
@@ -155,8 +172,90 @@ func (t *Tea) String() string {
 	return buf.String()
 }
 
+func getEntryTime(d string, t string) (time.Time, error) {
+	if d == "" {
+		return time.Now(), errors.New("Date is empty")
+	}
+	if t == "" {
+		return time.Now(), errors.New("Time is empty")
+	}
+
+	// Determine the date
+	darr := strings.Split(d, "/")
+
+	month, err := strconv.Atoi(darr[0])
+	if err != nil {
+		log.Println(err)
+	}
+
+	day, err := strconv.Atoi(darr[1])
+	if err != nil {
+		log.Println(err)
+	}
+
+	year, err := strconv.Atoi(darr[2])
+	if err != nil {
+		log.Println(err)
+	}
+
+	// Determine the time
+	minute, err := strconv.Atoi(t[len(t)-2:])
+	if err != nil {
+		log.Println(err)
+	}
+
+	hour, err := strconv.Atoi(t[:len(t)-2])
+	if err != nil {
+		log.Println(err)
+	}
+
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc), nil
+}
+
+func getEntryDuration(d string) time.Duration {
+	re := regexp.MustCompile("[[:space:]]")
+	dur, err := time.ParseDuration(re.ReplaceAllString(d, ""))
+	if err != nil {
+		return time.Nanosecond
+	}
+	return dur
+}
+
+func newEntry(entry []string) (*Entry, error) {
+	if len(entry) < 11 {
+		return nil, errors.New("Invalid data")
+	}
+
+	e := new(Entry)
+
+	e.Date = entry[1]
+	e.Time = entry[2]
+
+	dateTime, err := getEntryTime(entry[1], entry[2])
+	if err != nil {
+		return nil, err
+	}
+	e.DateTime = dateTime
+
+	e.Rating, _ = strconv.Atoi(entry[4])
+	e.Comments = entry[5]
+
+	e.SteepTime = getEntryDuration(entry[7])
+
+	e.SteepingVessel, _ = strconv.Atoi(entry[8])
+	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
+	e.SessionInstance = entry[10]
+	e.Fixins = strings.Split(entry[11], ";")
+
+	return e, nil
+}
+
 func newTea(data []string) (*Tea, error) {
-	// fmt.Printf("%v\n", data)
 	if len(data) < 22 {
 		return nil, errors.New("Data badly formatted")
 	}
@@ -207,10 +306,8 @@ func newTea(data []string) (*Tea, error) {
 		}
 	}
 
-	t.Log = make(map[string]Entry)
-	t.average = 0
-	t.median = 0
-	t.mode = 0
+	t.log = make(map[time.Time]Entry)
+	t.logSortedKeys = make(TimeSlice, 0)
 
 	return t, nil
 }

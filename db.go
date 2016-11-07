@@ -7,6 +7,123 @@ import (
 	"strings"
 )
 
+type HgTeaDb struct {
+	teas          map[int]Tea
+	log           []*Entry
+	logSortedKeys TimeSlice
+}
+
+type Filter struct {
+	stockedOnly bool
+	samplesOnly bool
+	types       map[string]struct{}
+}
+
+func (f *Filter) StockedOnly() *Filter {
+	f.stockedOnly = true
+	return f
+}
+
+func (f *Filter) SamplesOnly() *Filter {
+	f.samplesOnly = true
+	return f
+}
+
+func (f *Filter) Types(v []string) *Filter {
+	for _, t := range v {
+		f.Type(t)
+	}
+	return f
+}
+
+func (f *Filter) Type(v string) *Filter {
+	f.types[strings.ToLower(v)] = struct{}{}
+	return f
+}
+
+func NewFilter() *Filter {
+	f := new(Filter)
+
+	f.stockedOnly = false
+	f.samplesOnly = false
+	f.types = make(map[string]struct{})
+
+	return f
+}
+
+func (d *HgTeaDb) Teas(filter *Filter) (map[int]Tea, error) {
+	teas := make(map[int]Tea)
+	for k, v := range d.teas {
+		// Now apply the filters
+		if filter.stockedOnly && !v.Storage.Stocked {
+			continue
+		}
+
+		// if filter.samplesOnly && !strings.Contains(strings.ToLower(v.Size), "sample") {
+		// continue
+		// }
+
+		if len(filter.types) > 0 {
+			if _, ok := filter.types[strings.ToLower(v.Type)]; !ok {
+				continue
+			}
+		}
+
+		teas[k] = v
+	}
+	return teas, nil
+}
+
+/*
+func (d *HgTeaDb) Log(filter *Filter) (map[time.Time]*Entry, error) {
+	teas := make(map[time.Time]Tea)
+	for k, v := range d.log {
+		log[k] = v
+	}
+	return log, nil
+}
+*/
+
+func New(teas_url string, log_url string) (*HgTeaDb, error) {
+	db := new(HgTeaDb)
+
+	// Get the tea database
+	teas, err := getSheet(teas_url)
+	if err != nil {
+		return nil, err
+	}
+
+	db.teas = make(map[int]Tea)
+	for _, tea := range teas[1:] {
+		t, err := newTea(tea)
+		if err != nil {
+			return nil, err
+		}
+
+		db.teas[t.Id] = *t
+	}
+
+	// Add the journal entries
+	journal, err := getSheet(log_url)
+	if err != nil {
+		return nil, err
+	}
+
+	db.log = make([]*Entry, 0)
+	for _, entry := range journal[1:] {
+		id, _ := strconv.Atoi(entry[3])
+		// TODO: also, add it to db.log
+		if tea, ok := db.teas[id]; ok {
+			err := tea.Add(entry)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return db, nil
+}
+
 func getSheet(url string) ([][]string, error) {
 	response, err := http.Get(url)
 	if err != nil {
@@ -23,55 +140,4 @@ func getSheet(url string) ([][]string, error) {
 	}
 
 	return db, nil
-}
-
-func BuildDatabase(stockedOnly bool, samplesOnly bool, types map[string]struct{}) (map[int]Tea, error) {
-	// Get the tea database
-	db, err := getSheet("https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv")
-	if err != nil {
-		return nil, err
-	}
-
-	teas := make(map[int]Tea)
-	for _, tea := range db[1:] {
-		t, err := newTea(tea)
-		if err != nil {
-			return nil, err
-		}
-
-		// Now apply the filters
-		if stockedOnly && !t.Storage.Stocked {
-			continue
-		}
-
-		if samplesOnly && !strings.Contains(strings.ToLower(t.Size), "sample") {
-			continue
-		}
-
-		if len(types) > 0 {
-			if _, ok := types[strings.ToLower(t.Type)]; !ok {
-				continue
-			}
-		}
-
-		teas[t.Id] = *t
-	}
-
-	// Add the journal entries
-	journal, err := getSheet("https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv")
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range journal[1:] {
-		id, _ := strconv.Atoi(entry[3])
-		if tea, ok := teas[id]; ok {
-			err := tea.Add(entry)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return teas, nil
 }

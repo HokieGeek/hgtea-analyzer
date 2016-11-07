@@ -13,7 +13,7 @@ func TestGetSheet(t *testing.T) {
 	// }
 }
 
-func TestBuildDatabase(t *testing.T) {
+func TestNewDatabase(t *testing.T) {
 	t.Skip("TODO")
 
 	// typesFilter := make(map[string]struct{})
