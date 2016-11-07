@@ -98,11 +98,11 @@ func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 	return log, nil
 }
 
-func New(teas_url, log_url, socks5Proxy string) (*HgTeaDb, error) {
+func New(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
 	db := new(HgTeaDb)
 
 	// Get the tea database
-	teas, err := getSheet(teas_url, socks5Proxy)
+	teas, err := getSheet(teas_url, proxyAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func New(teas_url, log_url, socks5Proxy string) (*HgTeaDb, error) {
 	}
 
 	// Add the journal entries
-	journal, err := getSheet(log_url, socks5Proxy)
+	journal, err := getSheet(log_url, proxyAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -148,10 +148,12 @@ func New(teas_url, log_url, socks5Proxy string) (*HgTeaDb, error) {
 	return db, nil
 }
 
-func getSheet(url, socks5Proxy string) ([][]string, error) {
+func getSheet(url, proxyAddr string) ([][]string, error) {
 	var response *http.Response
 	var err error
-	if socks5Proxy != "" {
+	if proxyAddr != "" {
+		// TODO: Determine if html or socks5 based on the protocol: http:// , socks5://
+		socks5Proxy := proxyAddr
 		dialer, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
 		if err != nil {
 			return nil, err

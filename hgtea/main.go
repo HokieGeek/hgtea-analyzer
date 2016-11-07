@@ -14,11 +14,14 @@ func main() {
 	teas_url := "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
 	log_url := "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
 
-	proxySocks5 := flag.String("proxy-socks5", "", "Use the given proxy")
+	proxyStr := flag.String("proxy", "", "Use the given proxy")
 
 	stockedFlag := flag.Bool("stocked", false, "Only display stocked teas")
 	// samplesFlag := flag.Bool("samples", false, "Only display tea samples")
 	teaTypes := flag.String("types", "", "Comma-delimited list of tea types to select")
+
+	// TODO: columnsStr := flag.String("columns", "", "Comma-delimited list of the columns to display")
+	noPrettyPrintFlag := flag.Bool("nopretty", false, "Formats the table prettily")
 
 	flag.Parse()
 
@@ -31,7 +34,7 @@ func main() {
 	// }
 	filter.Types(strings.Split(*teaTypes, ","))
 
-	db, err := hgtealib.New(teas_url, log_url, *proxySocks5)
+	db, err := hgtealib.New(teas_url, log_url, *proxyStr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +45,7 @@ func main() {
 		/*
 			// Id            int
 			// Name          string
-			Type          string
+			// Type          string
 			// Picked.Year  int
 			// Picked.Flush Flush
 			// Origin.Country string
@@ -56,18 +59,25 @@ func main() {
 			Size          string
 			LeafGrade     string
 		*/
-		fmt.Printf("%3s\t%-60s\t%4s\t%9s\t%30s\t%6s\n", "Id", "Name", "Year", "Flush", "Origin", "Entries")
+		headerFmt := "%3s\t%-60s\t%-15s\t%4s\t%9s\t%30s\t%6s\n"
+		teaFmt := "%3d\t%-60s\t%-15s\t%d\t%9s\t%30s\t%7d\n"
+		if *noPrettyPrintFlag {
+			re := regexp.MustCompile("%-?[0-9]+")
+			headerFmt = re.ReplaceAllString(headerFmt, "%")
+			teaFmt = re.ReplaceAllString(teaFmt, "%")
+		}
+
+		fmt.Printf(headerFmt, "Id", "Name", "Type", "Year", "Flush", "Origin", "Entries")
 		teas, _ := db.Teas(filter)
 		for _, tea := range teas {
-			fmt.Printf("%3d\t%-60s\t%d\t%9s\t%30s\t%7d\n", tea.Id, tea.Name, tea.Picked.Year, tea.Picked.Flush, tea.Origin.String(), tea.LogLen())
+			fmt.Printf(teaFmt, tea.Id, tea.Name, tea.Type, tea.Picked.Year, tea.Picked.Flush, tea.Origin.String(), tea.LogLen())
 		}
 	} else if command == "log" {
 		// if len(flag.Args()) > 0 {
 		// fmt.Printf("%v\n", flag.Args()[1:])
-		logCmd := flag.NewFlagSet("log", flag.ExitOnError)
-		noPrettyPrintFlag := logCmd.Bool("nopretty", false, "Formats the table prettily")
+		// logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 
-		logCmd.Parse(flag.Args()[1:])
+		// logCmd.Parse(flag.Args()[1:])
 
 		headerFmt := "%-21s\t%-60s\t%10s\t%s\t%s\t%s\t%s\t%s\n"
 		entryFmt := "%s\t%-60s\t%10s\t%d\t%v\t%d\t%d\t%s\n"
