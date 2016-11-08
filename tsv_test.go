@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var testTeas = [][]string{
+var testTsvTeas = [][]string{
 	[]string{
 		time.Now().String(), // 0
 		"1/1/2016",
@@ -35,7 +35,7 @@ var testTeas = [][]string{
 	},
 }
 
-var testEntries = [][]string{
+var testTsvEntries = [][]string{
 	[]string{
 		time.Now().String(), // 0
 		"1/1/2016",
@@ -101,14 +101,14 @@ var expectedValues = []int{
 }
 
 func CreateTestTea() (*Tea, error) {
-	original_tea := testTeas[0]
+	original_tea := testTsvTeas[0]
 
 	tea, err := newTeaFromTsv(original_tea)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, entry := range testEntries {
+	for _, entry := range testTsvEntries {
 		e, err := newEntryFromTsv(entry)
 		if err != nil {
 			return nil, err
@@ -122,7 +122,7 @@ func CreateTestTea() (*Tea, error) {
 	return tea, nil
 }
 
-func AreEntriesEqual(expected []string, received *Entry) (bool, error) {
+func IsTsvEqualToEntry(expected []string, received *Entry) (bool, error) {
 	// TODO: timestamp
 	// if expected[0] != received.Timestamp {
 
@@ -179,7 +179,7 @@ func AreEntriesEqual(expected []string, received *Entry) (bool, error) {
 	return true, nil
 }
 
-func AreTeasEqual(expected []string, received *Tea) (bool, error) {
+func IsTsvEqualToTea(expected []string, received *Tea) (bool, error) {
 	// TODO: timestamp
 	// if expected[0] != received.Timestamp {
 
@@ -279,14 +279,14 @@ func AreTeasEqual(expected []string, received *Tea) (bool, error) {
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 func TestCreateEntry(t *testing.T) {
-	original_entry := testEntries[0]
+	original_entry := testTsvEntries[0]
 
 	e, err := newEntryFromTsv(original_entry)
 	if err != nil {
 		t.Fatalf("Unable to create Entry: %s\n", err)
 	}
 
-	if _, err := AreEntriesEqual(original_entry, e); err != nil {
+	if _, err := IsTsvEqualToEntry(original_entry, e); err != nil {
 		t.Errorf("Entry object does not match expected: %s", err)
 	}
 }
@@ -300,14 +300,14 @@ func TestCreateBadEntry(t *testing.T) {
 }
 
 func TestCreateTea(t *testing.T) {
-	original_tea := testTeas[0]
+	original_tea := testTsvTeas[0]
 
 	tea, err := newTeaFromTsv(original_tea)
 	if err != nil {
 		t.Fatalf("Unable to create Tea: %s\n", err)
 	}
 
-	if _, err := AreTeasEqual(original_tea, tea); err != nil {
+	if _, err := IsTsvEqualToTea(original_tea, tea); err != nil {
 		t.Errorf("Tea object does not match expected: %s", err)
 	}
 }
@@ -319,16 +319,16 @@ func TestCreateBadTea(t *testing.T) {
 		t.Fatal("Successfully created badly formatted tea")
 	}
 
-	bad_id_tea := make([]string, len(testTeas[0]))
-	copy(bad_id_tea, testTeas[0])
+	bad_id_tea := make([]string, len(testTsvTeas[0]))
+	copy(bad_id_tea, testTsvTeas[0])
 	bad_id_tea[2] = "one"
 	_, err = newTeaFromTsv(bad_id_tea)
 	if err == nil {
 		t.Fatal("Successfully created tea with bad Id")
 	}
 
-	bad_year_tea := make([]string, len(testTeas[0]))
-	copy(bad_year_tea, testTeas[0])
+	bad_year_tea := make([]string, len(testTsvTeas[0]))
+	copy(bad_year_tea, testTsvTeas[0])
 	bad_year_tea[6] = "MMXVI"
 	_, err = newTeaFromTsv(bad_year_tea)
 	if err == nil {
@@ -337,14 +337,14 @@ func TestCreateBadTea(t *testing.T) {
 }
 
 func TestTeaAdd(t *testing.T) {
-	original_tea := testTeas[0]
+	original_tea := testTsvTeas[0]
 
 	tea, err := newTeaFromTsv(original_tea)
 	if err != nil {
 		t.Fatalf("Unable to create Tea: %s\n", err)
 	}
 
-	entry, err := newEntryFromTsv(testEntries[0])
+	entry, err := newEntryFromTsv(testTsvEntries[0])
 	if err != nil {
 		t.Fatalf("Error creating dummy entry: %s\n", err)
 	}
@@ -354,7 +354,7 @@ func TestTeaAdd(t *testing.T) {
 	}
 
 	// TODO
-	// if _, err := AreEntriesEqual(testEntries[0], tea.Log[0]); err != nil {
+	// if _, err := IsTsvEqualToEntry(testTsvEntries[0], tea.Log[0]); err != nil {
 	// t.Errorf("Entry object does not match expected: %s", err)
 	// }
 
@@ -404,7 +404,7 @@ func TestTeaMode(t *testing.T) {
 }
 
 func TestTeaString(t *testing.T) {
-	original_tea := testTeas[0]
+	original_tea := testTsvTeas[0]
 
 	tea, err := newTeaFromTsv(original_tea)
 	if err != nil {

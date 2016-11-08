@@ -3,6 +3,7 @@ package hgtealib
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"regexp"
 	"sort"
@@ -52,16 +53,26 @@ type Entry struct {
 }
 
 func (e *Entry) ParseDateTime(d, t string) error {
+	// Validate the date field
 	if d == "" {
 		return errors.New("Date is empty")
 	}
+
+	darr := strings.Split(d, "/")
+	if len(darr) < 3 || darr[0] == "" || darr[1] == "" || darr[2] == "" {
+		return errors.New(fmt.Sprintf("Date field is invalid: %s", d))
+	}
+
+	// Validate the time field
 	if t == "" {
 		return errors.New("Time is empty")
 	}
 
-	// Determine the date
-	darr := strings.Split(d, "/")
+	if len(t) < 3 {
+		return errors.New(fmt.Sprintf("Time field is invalid: %s", t))
+	}
 
+	// Determine the date
 	month, err := strconv.Atoi(darr[0])
 	if err != nil {
 		log.Println(err)
@@ -107,6 +118,18 @@ func (e *Entry) ParseSteepTime(d string) error {
 	e.SteepTime = dur
 
 	return nil
+}
+
+func (e *Entry) Equal(other *Entry) bool {
+	return e.Tea == other.Tea &&
+		e.DateTime.Equal(other.DateTime) &&
+		e.Rating == other.Rating &&
+		e.Comments == other.Comments &&
+		e.SteepTime.Nanoseconds() == other.SteepTime.Nanoseconds() &&
+		e.SteepingVessel == other.SteepingVessel &&
+		e.SteepingTemperature == other.SteepingTemperature &&
+		e.SessionInstance == other.SessionInstance &&
+		(len(e.Fixins) == len(other.Fixins))
 }
 
 type TimeSlice []time.Time
