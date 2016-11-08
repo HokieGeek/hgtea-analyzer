@@ -112,9 +112,9 @@ func newHgTeaDb(teas []*Tea, entries []*Entry) (*HgTeaDb, error) {
 			db.logSortedKeys = append(db.logSortedKeys, entry.DateTime)
 			sort.Sort(db.logSortedKeys)
 
-			if tea, ok := db.teas[entry.Id]; ok {
+			if tea, ok := db.teas[entry.Tea]; ok {
 				err := tea.Add(*entry)
-				db.teas[entry.Id] = tea // TODO: why do I have to do this?
+				db.teas[entry.Tea] = tea // TODO: why do I have to do this?
 				if err != nil {
 					return nil, err
 				}

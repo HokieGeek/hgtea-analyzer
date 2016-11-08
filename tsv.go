@@ -56,7 +56,7 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 
 	e := new(Entry)
 
-	e.Id, _ = strconv.Atoi(entry[3])
+	e.Tea, _ = strconv.Atoi(entry[3])
 	e.ParseDateTime(entry[1], entry[2])
 
 	e.Rating, _ = strconv.Atoi(entry[4])

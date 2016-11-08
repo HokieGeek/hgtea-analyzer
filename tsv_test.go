@@ -137,12 +137,12 @@ func AreEntriesEqual(expected []string, received *Entry) (bool, error) {
 		}
 	*/
 
-	// dummy, _ := strconv.Atoi(expected[3])
-	// if dummy != received.Tea {
-	// 	return false, errors.New(fmt.Sprintf("Tea field %d did not match expected %s", received.Tea, expected[3]))
-	// }
+	dummy, _ := strconv.Atoi(expected[3])
+	if dummy != received.Tea {
+		return false, errors.New(fmt.Sprintf("Tea field %d did not match expected %s", received.Tea, expected[3]))
+	}
 
-	dummy, _ := strconv.Atoi(expected[4])
+	dummy, _ = strconv.Atoi(expected[4])
 	if dummy != received.Rating {
 		return false, errors.New(fmt.Sprintf("Rating field %d did not match expected %s", received.Rating, expected[4]))
 	}

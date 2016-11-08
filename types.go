@@ -40,7 +40,7 @@ func (f Flush) String() string {
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
-	Id                  int // TODO: Id => TeaId
+	Tea                 int
 	DateTime            time.Time
 	Rating              int
 	Comments            string

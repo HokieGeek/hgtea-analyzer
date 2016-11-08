@@ -98,7 +98,7 @@ func main() {
 		// teas, _ := db.Teas(filter)
 		log, _ := db.Log(filter)
 		for _, v := range log {
-			tea, _ := db.Tea(v.Id)
+			tea, _ := db.Tea(v.Tea)
 			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating, v.Fixins, v.SteepingVessel, v.SteepingTemperature, v.SessionInstance)
 		}
 	}
