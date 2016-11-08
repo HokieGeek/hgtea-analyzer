@@ -12,4 +12,8 @@ tabnew types_test.go
 topleft vsplit
 edit types.go
 
+tabnew tsv_test.go
+topleft vsplit
+edit tsv.go
+
 tabfirst

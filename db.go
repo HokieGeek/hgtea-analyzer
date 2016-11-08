@@ -1,13 +1,9 @@
 package hgtealib
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
-	"golang.org/x/net/proxy"
-	"net/http"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -98,90 +94,41 @@ func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 	return log, nil
 }
 
-func New(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
-	db := new(HgTeaDb)
-
-	// Get the tea database
-	teas, err := getSheet(teas_url, proxyAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	db.teas = make(map[int]Tea)
-	for _, tea := range teas[1:] {
-		t, err := newTea(tea)
-		if err != nil {
-			return nil, err
-		}
-
-		db.teas[t.Id] = *t
-	}
-
-	// Add the journal entries
-	journal, err := getSheet(log_url, proxyAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	// db.log = make([]*Entry, 0)
-	db.log = make(map[time.Time]Entry)
-	for _, entry := range journal[1:] {
-		e, err := newEntry(entry)
-		if err != nil {
-			return nil, err
-		}
-
-		db.log[e.DateTime] = *e
-		db.logSortedKeys = append(db.logSortedKeys, e.DateTime)
-		sort.Sort(db.logSortedKeys)
-
-		id, _ := strconv.Atoi(entry[3])
-		if tea, ok := db.teas[id]; ok {
-			err := tea.Add(*e)
-			db.teas[id] = tea // TODO: why do I have to do this?
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return db, nil
+/*
+func (d *HgTeaDb) addTea(tea *Tea) error {
+	d.teas[t.Id] = *t
 }
 
-func getSheet(url, proxyAddr string) ([][]string, error) {
-	var response *http.Response
-	var err error
-	if proxyAddr != "" {
-		// TODO: Determine if html or socks5 based on the protocol: http:// , socks5://
-		socks5Proxy := proxyAddr
-		dialer, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
-		if err != nil {
-			return nil, err
-		}
-		httpTransport := &http.Transport{}
-		httpClient := &http.Client{Transport: httpTransport}
-		httpTransport.Dial = dialer.Dial
+func (d *HgTeaDb) addEntry(entry *Entry) error {
+}
+*/
 
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, err
+func initDb(teas []*Tea, entries []*Entry) (*HgTeaDb, error) {
+	db := new(HgTeaDb)
+	db.teas = make(map[int]Tea)
+	db.log = make(map[time.Time]Entry)
+
+	for _, tea := range teas {
+		if tea != nil {
+			db.teas[tea.Id] = *tea
 		}
 
-		response, err = httpClient.Do(req)
-	} else {
-		response, err = http.Get(url)
-	}
-	if err != nil {
-		return nil, err
 	}
 
-	defer response.Body.Close()
+	for _, entry := range entries {
+		if entry != nil {
+			db.log[entry.DateTime] = *entry
+			db.logSortedKeys = append(db.logSortedKeys, entry.DateTime)
+			sort.Sort(db.logSortedKeys)
 
-	r := csv.NewReader(response.Body)
-	r.Comma = '\t'
-	db, err := r.ReadAll()
-	if err != nil {
-		return nil, err
+			if tea, ok := db.teas[entry.Id]; ok {
+				err := tea.Add(*entry)
+				db.teas[entry.Id] = tea // TODO: why do I have to do this?
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
 	}
 
 	return db, nil

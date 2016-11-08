@@ -20,7 +20,7 @@ func main() {
 	// samplesFlag := flag.Bool("samples", false, "Only display tea samples")
 	teaTypes := flag.String("types", "", "Comma-delimited list of tea types to select")
 
-	// TODO: columnsStr := flag.String("columns", "", "Comma-delimited list of the columns to display")
+	// columnsStr := flag.String("columns", "", "Comma-delimited list of the columns to display")
 	noPrettyPrintFlag := flag.Bool("nopretty", false, "Formats the table prettily")
 
 	flag.Parse()
@@ -34,7 +34,7 @@ func main() {
 	// }
 	filter.Types(strings.Split(*teaTypes, ","))
 
-	db, err := hgtealib.New(teas_url, log_url, *proxyStr)
+	db, err := hgtealib.NewFromTsv(teas_url, log_url, *proxyStr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +67,9 @@ func main() {
 			teaFmt = re.ReplaceAllString(teaFmt, "%")
 		}
 
+		// if *columnsStr == "" {
 		fmt.Printf(headerFmt, "Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode")
+		// }
 		teas, _ := db.Teas(filter)
 		for _, tea := range teas {
 			fmt.Printf(teaFmt, tea.Id, tea.Name, tea.Type, tea.Picked.Year, tea.Picked.Flush, tea.Origin.String(), tea.LogLen(), tea.Average(), tea.Median(), tea.Mode())

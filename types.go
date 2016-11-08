@@ -40,7 +40,7 @@ func (f Flush) String() string {
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
-	Id                  int
+	Id                  int // TODO: Id => TeaId
 	DateTime            time.Time
 	Rating              int
 	Comments            string
@@ -199,7 +199,7 @@ func (t *Tea) String() string {
 	return buf.String()
 }
 
-func getEntryTime(d string, t string) (time.Time, error) {
+func getEntryTime(d, t string) (time.Time, error) {
 	if d == "" {
 		return time.Now(), errors.New("Date is empty")
 	}
@@ -251,89 +251,4 @@ func getEntryDuration(d string) time.Duration {
 		return time.Nanosecond
 	}
 	return dur
-}
-
-func newEntry(entry []string) (*Entry, error) {
-	if len(entry) < 11 {
-		return nil, errors.New("Invalid data")
-	}
-
-	e := new(Entry)
-
-	e.Id, _ = strconv.Atoi(entry[3])
-	dateTime, err := getEntryTime(entry[1], entry[2])
-	if err != nil {
-		return nil, err
-	}
-	e.DateTime = dateTime
-
-	e.Rating, _ = strconv.Atoi(entry[4])
-	e.Comments = entry[5]
-
-	e.SteepTime = getEntryDuration(entry[7])
-
-	e.SteepingVessel, _ = strconv.Atoi(entry[8])
-	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
-	e.SessionInstance = entry[10]
-	e.Fixins = strings.Split(entry[11], ";")
-
-	return e, nil
-}
-
-func newTea(data []string) (*Tea, error) {
-	if len(data) < 22 {
-		return nil, errors.New("Data badly formatted")
-	}
-
-	t := new(Tea)
-
-	var err error
-	t.Id, err = strconv.Atoi(data[2])
-	if err != nil {
-		return nil, err
-	}
-	t.Name = data[3]
-	t.Type = data[4]
-	t.Size = data[18]
-	t.LeafGrade = data[15]
-
-	t.Origin.Country = data[14]
-	t.Origin.Region = data[5]
-
-	t.Storage.Stocked = (data[19] == "TRUE")
-	t.Storage.Aging = (data[20] == "TRUE")
-
-	if data[6] != "" {
-		t.Picked.Year, err = strconv.Atoi(data[6])
-		if err != nil {
-			return nil, err
-		}
-	}
-	if data[7] != "" {
-		dummy_float, err := strconv.ParseFloat(data[7], 64)
-		if err != nil {
-			return nil, err
-		}
-		t.Picked.Flush = Flush(dummy_float)
-	}
-
-	t.Purchased.Location = data[8]
-	t.Purchased.Date = data[9]
-	if data[10] != "" {
-		t.Purchased.Price, err = strconv.ParseFloat(data[10], 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if data[21] != "" {
-		t.Purchased.Packaging, err = strconv.Atoi(data[21])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	t.log = make(map[time.Time]Entry)
-	t.logSortedKeys = make(TimeSlice, 0)
-
-	return t, nil
 }
