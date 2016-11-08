@@ -8,12 +8,6 @@ import (
 	"time"
 )
 
-type HgTeaDb struct {
-	teas          map[int]Tea
-	log           map[time.Time]Entry
-	logSortedKeys TimeSlice
-}
-
 type Filter struct {
 	stockedOnly bool
 	samplesOnly bool
@@ -54,6 +48,12 @@ func NewFilter() *Filter {
 	f.types = make(map[string]struct{})
 
 	return f
+}
+
+type HgTeaDb struct {
+	teas          map[int]Tea
+	log           map[time.Time]Entry
+	logSortedKeys TimeSlice
 }
 
 func (d *HgTeaDb) Teas(filter *Filter) (map[int]Tea, error) {
