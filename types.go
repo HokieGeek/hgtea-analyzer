@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"sort"
 	"strconv"
@@ -75,33 +74,33 @@ func (e *Entry) ParseDateTime(d, t string) error {
 	// Determine the date
 	month, err := strconv.Atoi(darr[0])
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	day, err := strconv.Atoi(darr[1])
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	year, err := strconv.Atoi(darr[2])
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	// Determine the time
 	minute, err := strconv.Atoi(t[len(t)-2:])
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	hour, err := strconv.Atoi(t[:len(t)-2])
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	loc, err := time.LoadLocation("America/New_York")
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	e.DateTime = time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc)

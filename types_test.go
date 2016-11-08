@@ -97,6 +97,31 @@ func TestEntryParseDateTime(t *testing.T) {
 		t.Fatal("Incorrectly parsed a date time with a badly formatted date")
 	}
 
+	err = e.ParseDateTime("10/11/YYYY", tiempo)
+	if err == nil {
+		t.Fatal("Incorrectly parsed a date time with a text date")
+	}
+
+	err = e.ParseDateTime("10/DD/1314", tiempo)
+	if err == nil {
+		t.Fatal("Incorrectly parsed a date time with a text date")
+	}
+
+	err = e.ParseDateTime("MM/11/1314", tiempo)
+	if err == nil {
+		t.Fatal("Incorrectly parsed a date time with a text date")
+	}
+
+	err = e.ParseDateTime(fecha, "12MM")
+	if err == nil {
+		t.Fatal("Incorrectly parsed a date time with text minutes")
+	}
+
+	err = e.ParseDateTime(fecha, "HH34")
+	if err == nil {
+		t.Fatal("Incorrectly parsed a date time with a text hours")
+	}
+
 	// TODO: the ParseDateTime function needs to do some valiation
 	// err = e.ParseDateTime("40/50/1", tiempo)
 	// if err == nil {
