@@ -415,3 +415,16 @@ func TestTeaString(t *testing.T) {
 		t.Error("Tea String() function returned empty string")
 	}
 }
+
+func TestGetSheetTsv(t *testing.T) {
+	t.Skip("TODO")
+
+	// db, err := getSheet("https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv")
+	// if err != nil {
+	// return nil, err
+	// }
+}
+
+func TestNewFromTsv(t *testing.T) {
+	t.Skip("TODO")
+}

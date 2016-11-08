@@ -4,16 +4,27 @@ import (
 	"testing"
 )
 
-func TestGetSheet(t *testing.T) {
+func TestNewFilter(t *testing.T) {
 	t.Skip("TODO")
-
-	// db, err := getSheet("https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv")
-	// if err != nil {
-	// return nil, err
-	// }
 }
 
-func TestNewDatabase(t *testing.T) {
+func TestFilterStockedOnly(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestFilterSamplesOnly(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestFilterTypes(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestFilterType(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestNewHgTeaDb(t *testing.T) {
 	t.Skip("TODO")
 
 	// typesFilter := make(map[string]struct{})
@@ -32,4 +43,16 @@ func TestNewDatabase(t *testing.T) {
 	// for _, tea := range db {
 	// fmt.Printf("%-60s %6d %6d %6d %6d\n", tea.String(), len(tea.Log), tea.Average(), tea.Median(), tea.Mode())
 	// }
+}
+
+func TestHgTeaDbTeas(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestHgTeaDbTea(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestHgTeaDbLog(t *testing.T) {
+	t.Skip("TODO")
 }
