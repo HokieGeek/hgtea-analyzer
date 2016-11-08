@@ -59,26 +59,20 @@ func main() {
 			Size          string
 			LeafGrade     string
 		*/
-		headerFmt := "%3s\t%-60s\t%-15s\t%4s\t%9s\t%30s\t%6s\n"
-		teaFmt := "%3d\t%-60s\t%-15s\t%d\t%9s\t%30s\t%7d\n"
+		headerFmt := "%3s\t%-60s\t%-15s\t%4s\t%9s\t%30s\t%6s\t%6s\t%6s\t%6s\n"
+		teaFmt := "%3d\t%-60s\t%-15s\t%d\t%9s\t%30s\t%7d\t%6d\t%6d\t%6d\n"
 		if *noPrettyPrintFlag {
 			re := regexp.MustCompile("%-?[0-9]+")
 			headerFmt = re.ReplaceAllString(headerFmt, "%")
 			teaFmt = re.ReplaceAllString(teaFmt, "%")
 		}
 
-		fmt.Printf(headerFmt, "Id", "Name", "Type", "Year", "Flush", "Origin", "Entries")
+		fmt.Printf(headerFmt, "Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode")
 		teas, _ := db.Teas(filter)
 		for _, tea := range teas {
-			fmt.Printf(teaFmt, tea.Id, tea.Name, tea.Type, tea.Picked.Year, tea.Picked.Flush, tea.Origin.String(), tea.LogLen())
+			fmt.Printf(teaFmt, tea.Id, tea.Name, tea.Type, tea.Picked.Year, tea.Picked.Flush, tea.Origin.String(), tea.LogLen(), tea.Average(), tea.Median(), tea.Mode())
 		}
 	} else if command == "log" {
-		// if len(flag.Args()) > 0 {
-		// fmt.Printf("%v\n", flag.Args()[1:])
-		// logCmd := flag.NewFlagSet("log", flag.ExitOnError)
-
-		// logCmd.Parse(flag.Args()[1:])
-
 		headerFmt := "%-21s\t%-60s\t%10s\t%s\t%s\t%s\t%s\t%s\n"
 		entryFmt := "%s\t%-60s\t%10s\t%d\t%v\t%d\t%d\t%s\n"
 		if *noPrettyPrintFlag {
@@ -104,26 +98,6 @@ func main() {
 		for _, v := range log {
 			tea, _ := db.Tea(v.Id)
 			fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating, v.Fixins, v.SteepingVessel, v.SteepingTemperature, v.SessionInstance)
-		}
-		// fmt.Println(len(teas))
-		/*
-			tea := teas[0]
-			for _, v := range tea.Log() {
-				fmt.Printf(entryFmt, v.DateTime.Format(time.RFC822Z), tea.String(), v.SteepTime, v.Rating)
-			}
-		*/
-		// entries, _ := db.Log(new(Filter))
-		// for _, entry := range entries {
-		// fmt.Println(entry)
-		// fmt.Printf("%-60s %d %7d %8s %8s %17s\n", tea.Name, tea.Picked.Year, len(tea.Log), tea.Date, tea.Time, tea.DateTime)
-		// }
-	} else if command == "stats" {
-		// statsCmd := flag.NewFlagSet("stats", flag.ExitOnError)
-
-		fmt.Printf("%-60s %6s %6s %6s %6s\n", "Name", "Entries", "Avg", "Median", "Mode")
-		teas, _ := db.Teas(filter)
-		for _, tea := range teas {
-			fmt.Printf("%-60s %6d %6d %6d %6d\n", tea.String(), tea.LogLen(), tea.Average(), tea.Median(), tea.Mode())
 		}
 	}
 }
