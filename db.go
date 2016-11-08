@@ -94,16 +94,7 @@ func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 	return log, nil
 }
 
-/*
-func (d *HgTeaDb) addTea(tea *Tea) error {
-	d.teas[t.Id] = *t
-}
-
-func (d *HgTeaDb) addEntry(entry *Entry) error {
-}
-*/
-
-func initDb(teas []*Tea, entries []*Entry) (*HgTeaDb, error) {
+func newHgTeaDb(teas []*Tea, entries []*Entry) (*HgTeaDb, error) {
 	db := new(HgTeaDb)
 	db.teas = make(map[int]Tea)
 	db.log = make(map[time.Time]Entry)

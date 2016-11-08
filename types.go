@@ -51,6 +51,64 @@ type Entry struct {
 	Fixins              []string
 }
 
+func (e *Entry) ParseDateTime(d, t string) error {
+	if d == "" {
+		return errors.New("Date is empty")
+	}
+	if t == "" {
+		return errors.New("Time is empty")
+	}
+
+	// Determine the date
+	darr := strings.Split(d, "/")
+
+	month, err := strconv.Atoi(darr[0])
+	if err != nil {
+		log.Println(err)
+	}
+
+	day, err := strconv.Atoi(darr[1])
+	if err != nil {
+		log.Println(err)
+	}
+
+	year, err := strconv.Atoi(darr[2])
+	if err != nil {
+		log.Println(err)
+	}
+
+	// Determine the time
+	minute, err := strconv.Atoi(t[len(t)-2:])
+	if err != nil {
+		log.Println(err)
+	}
+
+	hour, err := strconv.Atoi(t[:len(t)-2])
+	if err != nil {
+		log.Println(err)
+	}
+
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		log.Println(err)
+	}
+
+	e.DateTime = time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc)
+
+	return nil
+}
+
+func (e *Entry) ParseSteepTime(d string) error {
+	re := regexp.MustCompile("[[:space:]]")
+	dur, err := time.ParseDuration(re.ReplaceAllString(d, ""))
+	if err != nil {
+		return err
+	}
+	e.SteepTime = dur
+
+	return nil
+}
+
 type TimeSlice []time.Time
 
 func (e TimeSlice) Len() int {
@@ -197,58 +255,4 @@ func (t *Tea) String() string {
 	buf.WriteString(t.Name)
 
 	return buf.String()
-}
-
-func getEntryTime(d, t string) (time.Time, error) {
-	if d == "" {
-		return time.Now(), errors.New("Date is empty")
-	}
-	if t == "" {
-		return time.Now(), errors.New("Time is empty")
-	}
-
-	// Determine the date
-	darr := strings.Split(d, "/")
-
-	month, err := strconv.Atoi(darr[0])
-	if err != nil {
-		log.Println(err)
-	}
-
-	day, err := strconv.Atoi(darr[1])
-	if err != nil {
-		log.Println(err)
-	}
-
-	year, err := strconv.Atoi(darr[2])
-	if err != nil {
-		log.Println(err)
-	}
-
-	// Determine the time
-	minute, err := strconv.Atoi(t[len(t)-2:])
-	if err != nil {
-		log.Println(err)
-	}
-
-	hour, err := strconv.Atoi(t[:len(t)-2])
-	if err != nil {
-		log.Println(err)
-	}
-
-	loc, err := time.LoadLocation("America/New_York")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc), nil
-}
-
-func getEntryDuration(d string) time.Duration {
-	re := regexp.MustCompile("[[:space:]]")
-	dur, err := time.ParseDuration(re.ReplaceAllString(d, ""))
-	if err != nil {
-		return time.Nanosecond
-	}
-	return dur
 }

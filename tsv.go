@@ -10,6 +10,45 @@ import (
 	"time"
 )
 
+func getSheetTsv(url, proxyAddr string) ([][]string, error) {
+	var response *http.Response
+	var err error
+	if proxyAddr != "" {
+		// TODO: Determine if html or socks5 based on the protocol: http:// , socks5://
+		socks5Proxy := proxyAddr
+		dialer, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
+		if err != nil {
+			return nil, err
+		}
+		httpTransport := &http.Transport{}
+		httpClient := &http.Client{Transport: httpTransport}
+		httpTransport.Dial = dialer.Dial
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		response, err = httpClient.Do(req)
+	} else {
+		response, err = http.Get(url)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+
+	r := csv.NewReader(response.Body)
+	r.Comma = '\t'
+	db, err := r.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func newEntryFromTsv(entry []string) (*Entry, error) {
 	if len(entry) < 11 {
 		return nil, errors.New("Invalid data")
@@ -18,19 +57,15 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 	e := new(Entry)
 
 	e.Id, _ = strconv.Atoi(entry[3])
-	dateTime, err := getEntryTime(entry[1], entry[2])
-	if err != nil {
-		return nil, err
-	}
-	e.DateTime = dateTime
+	e.ParseDateTime(entry[1], entry[2])
 
 	e.Rating, _ = strconv.Atoi(entry[4])
 	e.Comments = entry[5]
 
-	e.SteepTime = getEntryDuration(entry[7])
-
+	e.ParseSteepTime(entry[7])
 	e.SteepingVessel, _ = strconv.Atoi(entry[8])
 	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
+
 	e.SessionInstance = entry[10]
 	e.Fixins = strings.Split(entry[11], ";")
 
@@ -97,7 +132,7 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 
 func NewFromTsv(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
 	// Get the tea database
-	teasTsv, err := getSheet(teas_url, proxyAddr)
+	teasTsv, err := getSheetTsv(teas_url, proxyAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +148,7 @@ func NewFromTsv(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
 	}
 
 	// Add the journal entries
-	journal, err := getSheet(log_url, proxyAddr)
+	journal, err := getSheetTsv(log_url, proxyAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -128,44 +163,5 @@ func NewFromTsv(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
 		entries = append(entries, e)
 	}
 
-	return initDb(teas, entries)
-}
-
-func getSheet(url, proxyAddr string) ([][]string, error) {
-	var response *http.Response
-	var err error
-	if proxyAddr != "" {
-		// TODO: Determine if html or socks5 based on the protocol: http:// , socks5://
-		socks5Proxy := proxyAddr
-		dialer, err := proxy.SOCKS5("tcp", socks5Proxy, nil, proxy.Direct)
-		if err != nil {
-			return nil, err
-		}
-		httpTransport := &http.Transport{}
-		httpClient := &http.Client{Transport: httpTransport}
-		httpTransport.Dial = dialer.Dial
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		response, err = httpClient.Do(req)
-	} else {
-		response, err = http.Get(url)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	defer response.Body.Close()
-
-	r := csv.NewReader(response.Body)
-	r.Comma = '\t'
-	db, err := r.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	return newHgTeaDb(teas, entries)
 }
