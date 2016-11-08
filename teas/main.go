@@ -41,7 +41,7 @@ func main() {
 
 	command := flag.Arg(0)
 
-	if command == "teas" {
+	if command == "ls" {
 		/*
 			// Id            int
 			// Name          string
