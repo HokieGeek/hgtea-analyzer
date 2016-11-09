@@ -23,6 +23,39 @@ var testEntries = []Entry{
 	},
 }
 
+var testTeas = []Tea{
+	{
+		Id:   42,
+		Name: "Test Tea #1",
+		Type: "Black Flavored",
+		{
+			Year:  2009,
+			Flush: InBetween,
+		},
+		{
+			Country: "India",
+			Region:  "Assam",
+		},
+		{
+			Stocked: true,
+			Aging:   false,
+		},
+		{
+			Location:  "testing.com",
+			Date:      "1/2/2009",
+			Price:     "1234.56",
+			Packaging: 0,
+		},
+		Size:      "2oz sample",
+		LeafGrade: "STFTGFOPOMG!",
+		// log           map[time.Time]Entry
+		// logSortedKeys TimeSlice
+		// average       int
+		// median        int
+		// mode          int
+	},
+}
+
 func createRandomString(sentences int) string {
 	var buf bytes.Buffer
 
@@ -52,6 +85,35 @@ func createRandomEntry() *Entry {
 	e.Fixins = strings.Split(createRandomString(r.Intn(3)), " ")
 
 	return e
+}
+
+func createRandomTea() *Tea {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	t := new(Tea)
+
+	t.Id = r.Int()
+	t.Name = createRandomString(1)
+	t.Type = createRandomString(1)
+	t.Picked.Year = r.Int()
+	t.Picked.Flush = Flush(r.Intn(5))
+	t.Origin.Country = createRandomString(1)
+	t.Origin.Region = createRandomString(1)
+	t.Storage.Stocked = (r.Int() % 2)
+	t.Storage.Aging = (r.Int() % 2)
+	t.Purchased.Location = createRandomString(1)
+	t.Purchased.Date = time.Now().Format("1/02/2009")
+	t.Purchased.Price = r.Float64()
+	t.Purchased.Packaging = r.Intn(10)
+	t.Size = createRandomString(1)
+	t.LeafGrade = createRandomString(1)
+	// t.log           map[time.Time]Entry
+	// t.logSortedKeys TimeSlice
+	// t.average       int
+	// t.median        int
+	// t.mode          int
+
+	return t
 }
 
 func TestEntryEquality(t *testing.T) {
