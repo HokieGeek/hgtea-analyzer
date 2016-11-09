@@ -65,6 +65,10 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 	e.ParseSteepTime(entry[7])
 	e.SteepingVessel, _ = strconv.Atoi(entry[8])
 	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
+	if e.SteepingTemperature == 0 {
+		// TODO: make this value depend on the type (if green or oolong, for example)
+		e.SteepingTemperature = 212
+	}
 
 	e.SessionInstance = entry[10]
 	e.Fixins = strings.Split(entry[11], ";")
