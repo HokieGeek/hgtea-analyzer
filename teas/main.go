@@ -10,26 +10,32 @@ import (
 	"time"
 )
 
-func printTeas(teas map[int]hgtealib.Tea, columns []string) {
-	/*
-		// Id            int
-		// Name          string
-		// Type          string
-		// Picked.Year  int
-		// Picked.Flush Flush
-		// Origin.Country string
-		// Origin.Region  string
-		Storage.Stocked bool
-		Storage.Aging   bool
-		Purchased.Location  string
-		Purchased.Date      string
-		Purchased.Price     float64
-		Purchased.Packaging int
-		Size          string
-		LeafGrade     string
-	*/
-	delimeter := "\t"
-	formats := map[string]string{
+type formatOpts struct {
+	delimeter string
+	fields    []string
+	porcelain bool
+}
+
+func printHeader(fields map[string]string, opts formatOpts) {
+	re_lcalpha := regexp.MustCompile("[a-z]+")
+	re_dashnums := regexp.MustCompile("-?[0-9]+")
+	for i, field := range opts.fields {
+		if opts.porcelain {
+			fields[field] = re_dashnums.ReplaceAllString(fields[field], "")
+		} else {
+			if i != 0 {
+				fmt.Print(opts.delimeter)
+			}
+			fmt.Printf(re_lcalpha.ReplaceAllString(fields[field], "s"), field)
+			if i == len(opts.fields) {
+				fmt.Println()
+			}
+		}
+	}
+}
+
+func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
+	fields := map[string]string{
 		"Id":      "%3d",
 		"Name":    "%-60s",
 		"Type":    "%-15s",
@@ -40,70 +46,53 @@ func printTeas(teas map[int]hgtealib.Tea, columns []string) {
 		"Avg":     "%6d",
 		"Median":  "%6d",
 		"Mode":    "%6d",
+		// Storage.Stocked bool
+		// Storage.Aging   bool
+		// Purchased.Location  string
+		// Purchased.Date      string
+		// Purchased.Price     float64
+		// Purchased.Packaging int
+		// Size          string
+		// LeafGrade     string
 	}
 
-	// Print the header
-	re := regexp.MustCompile("[a-z]+")
-	for i, col := range columns {
-		if i != 0 {
-			fmt.Print(delimeter)
-		}
-		/*
-			if *rawFlag {
-				re := regexp.MustCompile("-?[0-9]+")
-				formats[col] = re.ReplaceAllString(formats[col], "")
-			}
-		*/
-		fmt.Printf(re.ReplaceAllString(formats[col], "s"), col)
-	}
-	fmt.Println()
+	printHeader(fields, opts)
 
 	// Now print the teas
 	for _, tea := range teas {
-		for i, col := range columns {
+		for i, field := range opts.fields {
 			if i != 0 {
-				fmt.Print(delimeter)
+				fmt.Print(opts.delimeter)
 			}
 			switch {
-			case col == "Id":
-				fmt.Printf(formats[col], tea.Id)
-			case col == "Name":
-				fmt.Printf(formats[col], tea.Name)
-			case col == "Type":
-				fmt.Printf(formats[col], tea.Type)
-			case col == "Year":
-				fmt.Printf(formats[col], tea.Picked.Year)
-			case col == "Flush":
-				fmt.Printf(formats[col], tea.Picked.Flush)
-			case col == "Origin":
-				fmt.Printf(formats[col], tea.Origin.String())
-			case col == "Entries":
-				fmt.Printf(formats[col], tea.LogLen())
-			case col == "Avg":
-				fmt.Printf(formats[col], tea.Average())
-			case col == "Median":
-				fmt.Printf(formats[col], tea.Median())
-			case col == "Mode":
-				fmt.Printf(formats[col], tea.Mode())
+			case field == "Id":
+				fmt.Printf(fields[field], tea.Id)
+			case field == "Name":
+				fmt.Printf(fields[field], tea.Name)
+			case field == "Type":
+				fmt.Printf(fields[field], tea.Type)
+			case field == "Year":
+				fmt.Printf(fields[field], tea.Picked.Year)
+			case field == "Flush":
+				fmt.Printf(fields[field], tea.Picked.Flush)
+			case field == "Origin":
+				fmt.Printf(fields[field], tea.Origin.String())
+			case field == "Entries":
+				fmt.Printf(fields[field], tea.LogLen())
+			case field == "Avg":
+				fmt.Printf(fields[field], tea.Average())
+			case field == "Median":
+				fmt.Printf(fields[field], tea.Median())
+			case field == "Mode":
+				fmt.Printf(fields[field], tea.Mode())
 			}
 		}
 		fmt.Println()
 	}
 }
 
-func printEntries(db *hgtealib.HgTeaDb, log []hgtealib.Entry, columns []string) {
-	/*
-		// DateTime            time.Time
-		// Rating              int
-		Comments            string
-		// SteepTime           time.Duration
-		SteepingVessel      int
-		// SteepingTemperature int
-		// SessionInstance     string
-		Fixins              []string
-	*/
-	delimeter := "\t"
-	formats := map[string]string{
+func printEntries(db *hgtealib.HgTeaDb, log []hgtealib.Entry, opts formatOpts) {
+	fields := map[string]string{
 		"Time":       "%-21s",
 		"Tea":        "%-60s",
 		"Steep Time": "%10s",
@@ -112,47 +101,36 @@ func printEntries(db *hgtealib.HgTeaDb, log []hgtealib.Entry, columns []string) 
 		"Vessel":     "%d",
 		"Temp":       "%d°",
 		"Session":    "%s",
+		// Comments            string
+		// SteepingVessel      int
+		// Fixins              []string
 	}
 
-	// Print the header
-	re := regexp.MustCompile("[a-z]+")
-	for i, col := range columns {
-		if i != 0 {
-			fmt.Print(delimeter)
-		}
-		/*
-			if *rawFlag {
-				re := regexp.MustCompile("-?[0-9]+")
-				formats[col] = re.ReplaceAllString(formats[col], "")
-			}
-		*/
-		fmt.Printf(re.ReplaceAllString(formats[col], "s"), col)
-	}
-	fmt.Println()
+	printHeader(fields, opts)
 
 	for _, v := range log {
 		tea, _ := db.Tea(v.Tea)
-		for i, col := range columns {
+		for i, field := range opts.fields {
 			if i != 0 {
-				fmt.Print(delimeter)
+				fmt.Print(opts.delimeter)
 			}
 			switch {
-			case col == "Time":
-				fmt.Printf(formats[col], v.DateTime.Format(time.RFC822Z))
-			case col == "Tea":
-				fmt.Printf(formats[col], tea.String())
-			case col == "Steep Time":
-				fmt.Printf(formats[col], v.SteepTime)
-			case col == "Rating":
-				fmt.Printf(formats[col], v.Rating)
-			case col == "Fixins":
-				fmt.Printf(formats[col], v.Fixins)
-			case col == "Vessel":
-				fmt.Printf(formats[col], v.SteepingVessel)
-			case col == "Temp":
-				fmt.Printf(formats[col], v.SteepingTemperature)
-			case col == "Session":
-				fmt.Printf(formats[col], v.SessionInstance)
+			case field == "Time":
+				fmt.Printf(fields[field], v.DateTime.Format(time.RFC822Z))
+			case field == "Tea":
+				fmt.Printf(fields[field], tea.String())
+			case field == "Steep Time":
+				fmt.Printf(fields[field], v.SteepTime)
+			case field == "Rating":
+				fmt.Printf(fields[field], v.Rating)
+			case field == "Fixins":
+				fmt.Printf(fields[field], v.Fixins)
+			case field == "Vessel":
+				fmt.Printf(fields[field], v.SteepingVessel)
+			case field == "Temp":
+				fmt.Printf(fields[field], v.SteepingTemperature)
+			case field == "Session":
+				fmt.Printf(fields[field], v.SessionInstance)
 			}
 		}
 		fmt.Println()
@@ -169,8 +147,8 @@ func main() {
 	stockedFlag := flag.Bool("stocked", false, "Only display stocked teas")
 	// samplesFlag := flag.Bool("samples", false, "Only display tea samples")
 
-	// rawFlag := flag.Bool("raw", false, "Formats the table prettily")
-	// columnsStr := flag.String("columns", "*", "Comma-delimited list of the columns to display")
+	porcelainFlag := flag.Bool("porcelain", false, "Prints out the data in a highly script consumable way")
+	fieldsStr := flag.String("fields", "*", "Comma-delimited list of the fields to display")
 	// sortStr := flag.String("sort", "*", "Comma-delimited list of fields to sort the display by")
 
 	flag.Parse()
@@ -186,13 +164,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fields := strings.Split(*fieldsStr, ",")
+
 	command := flag.Arg(0)
 
-	if command == "ls" {
+	switch {
+	case command == "ls":
+		if len(fields) == 1 && fields[0] == "*" {
+			fields = []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"}
+		}
 		teas, _ := db.Teas(filter)
-		printTeas(teas, []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"})
-	} else if command == "log" {
+		printTeas(teas, formatOpts{delimeter: "\t", fields: fields, porcelain: *porcelainFlag})
+	case command == "log":
+		if len(fields) == 1 && fields[0] == "*" {
+			fields = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel", "Temp", "Session"}
+		}
 		log, _ := db.Log(filter)
-		printEntries(db, log, []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel", "Temp", "Session"})
+		printEntries(db, log, formatOpts{delimeter: "\t", fields: fields, porcelain: *porcelainFlag})
 	}
 }
