@@ -28,22 +28,22 @@ var testTeas = []Tea{
 		Id:   42,
 		Name: "Test Tea #1",
 		Type: "Black Flavored",
-		{
+		Picked: TeaPickPeriod{
 			Year:  2009,
 			Flush: InBetween,
 		},
-		{
+		Origin: TeaOrigin{
 			Country: "India",
 			Region:  "Assam",
 		},
-		{
+		Storage: TeaStorageState{
 			Stocked: true,
 			Aging:   false,
 		},
-		{
+		Purchased: TeaPurchaseInfo{
 			Location:  "testing.com",
 			Date:      "1/2/2009",
-			Price:     "1234.56",
+			Price:     1234.56,
 			Packaging: 0,
 		},
 		Size:      "2oz sample",
@@ -99,8 +99,8 @@ func createRandomTea() *Tea {
 	t.Picked.Flush = Flush(r.Intn(5))
 	t.Origin.Country = createRandomString(1)
 	t.Origin.Region = createRandomString(1)
-	t.Storage.Stocked = (r.Int() % 2)
-	t.Storage.Aging = (r.Int() % 2)
+	t.Storage.Stocked = ((r.Int() % 2) == 0)
+	t.Storage.Aging = ((r.Int() % 2) == 0)
 	t.Purchased.Location = createRandomString(1)
 	t.Purchased.Date = time.Now().Format("1/02/2009")
 	t.Purchased.Price = r.Float64()
