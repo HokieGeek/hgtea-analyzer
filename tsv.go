@@ -74,10 +74,11 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 
 	e.SessionInstance = entry[10]
 	for _, f := range strings.Split(entry[11], ";") {
-		dummy, _ := strconv.Atoi(f)
-		e.Fixins = append(e.Fixins, TeaFixin(dummy))
+		if f != "" {
+			dummy, _ := strconv.Atoi(f)
+			e.Fixins = append(e.Fixins, TeaFixin(dummy))
+		}
 	}
-	// e.Fixins = strings.Split(entry[11], ";")
 
 	return e, nil
 }
