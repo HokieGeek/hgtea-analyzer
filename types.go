@@ -290,6 +290,11 @@ type Tea struct {
 }
 
 func (t *Tea) Add(entry Entry) error {
+	if t.log == nil {
+		t.log = make(map[time.Time]Entry)
+		t.logSortedKeys = make(TimeSlice, 0)
+	}
+
 	t.log[entry.DateTime] = entry
 	t.logSortedKeys = append(t.logSortedKeys, entry.DateTime)
 	sort.Sort(t.logSortedKeys)

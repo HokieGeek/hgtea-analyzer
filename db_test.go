@@ -64,34 +64,124 @@ func TestFilterType(t *testing.T) {
 }
 
 func TestNewHgTeaDb(t *testing.T) {
-	t.Skip("TODO")
+	_, err := newHgTeaDb(testTeas, testEntries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	// typesFilter := make(map[string]struct{})
-	// if len(*teaTypes) > 0 {
-	// for _, typeFilter := range strings.Split(*teaTypes, ",") {
-	// typesFilter[strings.ToLower(typeFilter)] = struct{}{}
-	// }
-	// }
-
-	// db, err := buildDatabase(*stockedFlag, *samplesFlag, typesFilter)
-	// if err != nil {
-	// log.Fatal(err)
-	// }
-
-	// fmt.Printf("%-60s %6s %6s %6s %6s\n", "Name", "Num", "Avg", "Median", "Mode")
-	// for _, tea := range db {
-	// fmt.Printf("%-60s %6d %6d %6d %6d\n", tea.String(), len(tea.Log), tea.Average(), tea.Median(), tea.Mode())
-	// }
-}
-
-func TestHgTeaDbTeas(t *testing.T) {
-	t.Skip("TODO")
-}
-
-func TestHgTeaDbTea(t *testing.T) {
-	t.Skip("TODO")
+	_, err = newHgTeaDb([]*Tea{}, []*Entry{})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestHgTeaDbLog(t *testing.T) {
-	t.Skip("TODO")
+	db, err := newHgTeaDb(testTeas, testEntries)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log, err := db.Log(NewFilter())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(log) != len(testEntries) {
+		t.Fatalf("Found %d log entries but expected %d", len(log), len(testEntries))
+	}
+
+	for _, l := range log {
+		var found bool
+		for _, e := range testEntries {
+			if l.Equal(e) {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatal("Did not find log entry in database")
+		}
+	}
+}
+
+func TestHgTeaDbTeas(t *testing.T) {
+	db, err := newHgTeaDb(testTeas, testEntries)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	teas, err := db.Teas(NewFilter())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(teas) != len(testTeas) {
+		t.Fatalf("Found %d teas but expected %d", len(teas), len(testTeas))
+	}
+
+	for _, v := range testTeas {
+		if _, ok := teas[v.Id]; !ok {
+			t.Fatal("Did not find tea in db")
+		}
+	}
+
+	for _, tea := range teas {
+		for _, l := range tea.Log() {
+			var found bool
+			for _, e := range testEntries {
+				if l.Equal(e) {
+					found = true
+				}
+			}
+			if !found {
+				t.Fatal("Did not find log entry in tea")
+			}
+		}
+	}
+}
+
+func TestHgTeaDbTeasFiltered(t *testing.T) {
+	db, err := newHgTeaDb(testTeas, testEntries)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check that stocked teas are returned
+	stockedIds := make([]int, 0)
+	for _, v := range testTeas {
+		if v.Storage.Stocked {
+			stockedIds = append(stockedIds, v.Id)
+		}
+	}
+
+	filteredTeas, err := db.Teas(NewFilter().StockedOnly())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(filteredTeas) != len(stockedIds) {
+		t.Fatalf("Expected %d stocked teas but got %d", len(stockedIds), len(filteredTeas))
+	}
+
+	for _, id := range stockedIds {
+		if _, ok := filteredTeas[id]; !ok {
+			t.Fatalf("Expected tea id %d to be in list of stocked teas", id)
+		}
+	}
+
+	// TODO: do Samples when it is implemented
+
+}
+
+func TestHgTeaDbTea(t *testing.T) {
+	db, err := newHgTeaDb(testTeas, testEntries)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, v := range testTeas {
+		_, err = db.Tea(v.Id)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 }

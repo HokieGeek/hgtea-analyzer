@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var testEntries = []Entry{
+var testEntries = []*Entry{
 	{
 		Tea:                 42,
 		DateTime:            time.Now(),
@@ -22,7 +22,7 @@ var testEntries = []Entry{
 	},
 }
 
-var testTeas = []Tea{
+var testTeas = []*Tea{
 	{
 		Id:   42,
 		Name: "Test Tea #1",
@@ -47,6 +47,35 @@ var testTeas = []Tea{
 		},
 		Size:      "2oz sample",
 		LeafGrade: "STFTGFOPOMG!",
+		// log           map[time.Time]Entry
+		// logSortedKeys TimeSlice
+		// average       int
+		// median        int
+		// mode          int
+	},
+	{
+		Id:   101,
+		Name: "Test Tea #2",
+		Type: "Black",
+		Picked: TeaPickPeriod{
+			Year: 2009,
+		},
+		Origin: TeaOrigin{
+			Country: "China",
+			Region:  "Yunnan",
+		},
+		Storage: TeaStorageState{
+			Stocked: false,
+			Aging:   false,
+		},
+		Purchased: TeaPurchaseInfo{
+			Location:  "testing.com",
+			Date:      "11/14/2010",
+			Price:     19.99,
+			Packaging: 0,
+		},
+		Size:      "2oz",
+		LeafGrade: "OP",
 		// log           map[time.Time]Entry
 		// logSortedKeys TimeSlice
 		// average       int
@@ -125,7 +154,7 @@ func createRandomTea(withEntries bool) *Tea {
 }
 
 func TestEntryEquality(t *testing.T) {
-	if !testEntries[0].Equal(&testEntries[0]) {
+	if !testEntries[0].Equal(testEntries[0]) {
 		t.Error("Entry equality identity test failed")
 	}
 
@@ -260,7 +289,7 @@ func TestEntryParseSteepTime(t *testing.T) {
 }
 
 func TestTeaEquality(t *testing.T) {
-	if !testTeas[0].Equal(&testTeas[0]) {
+	if !testTeas[0].Equal(testTeas[0]) {
 		t.Error("Tea equality identity test failed")
 	}
 
