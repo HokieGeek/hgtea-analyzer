@@ -86,7 +86,7 @@ func createRandomEntry() *Entry {
 	return e
 }
 
-func createRandomTea() *Tea {
+func createRandomTea(withEntries bool) *Tea {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	t := new(Tea)
@@ -110,8 +110,13 @@ func createRandomTea() *Tea {
 	t.log = make(map[time.Time]Entry)
 	t.logSortedKeys = make(TimeSlice, 0)
 
-	// TODO: t.log           map[time.Time]Entry
-	// t.logSortedKeys TimeSlice
+	if withEntries {
+		for i := rand.Intn(30); i != 0; i-- {
+			e := createRandomEntry()
+			t.Add(*e)
+		}
+	}
+
 	// t.average       int
 	// t.median        int
 	// t.mode          int
@@ -259,13 +264,13 @@ func TestTeaEquality(t *testing.T) {
 		t.Error("Tea equality identity test failed")
 	}
 
-	if createRandomTea().Equal(createRandomTea()) {
+	if createRandomTea(false).Equal(createRandomTea(false)) {
 		t.Error("Tea equality test with random data failed")
 	}
 }
 
 func TestLog(t *testing.T) {
-	tea := createRandomTea()
+	tea := createRandomTea(false)
 
 	entries := make([]*Entry, rand.Intn(30))
 	for i, _ := range entries {
