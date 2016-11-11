@@ -1,19 +1,12 @@
 #!/usr/bin/vim -S
 
-args *.go Dockerfile README.md ed.vim
+args *.go teas/*.go Dockerfile README.md
 
-edit teas/main.go
-
-tabnew db_test.go
-topleft vsplit
-edit db.go
-
-tabnew types_test.go
-topleft vsplit
-edit types.go
-
-tabnew tsv_test.go
-topleft vsplit
-edit tsv.go
+for s:p in [ 'teas/main', 'db', 'types', 'tsv' ]
+    execute "tabnew " . s:p . "_test.go"
+    topleft vsplit
+    execute "edit " . s:p . ".go"
+endfor
 
 tabfirst
+tabclose
