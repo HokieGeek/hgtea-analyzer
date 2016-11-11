@@ -54,7 +54,6 @@ func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
 		// Purchased.Date      string
 		// Purchased.Price     float64
 		// Purchased.Packaging int
-		// Size          string
 		// LeafGrade     string
 	}
 
@@ -74,7 +73,11 @@ func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
 			case field == "Type":
 				fmt.Printf(fields[field], tea.Type)
 			case field == "Year":
-				fmt.Printf(fields[field], tea.Picked.Year)
+				if tea.Picked.Year == 0 {
+					fmt.Printf("%s", "")
+				} else {
+					fmt.Printf(fields[field], tea.Picked.Year)
+				}
 			case field == "Flush":
 				fmt.Printf(fields[field], tea.Picked.Flush)
 			case field == "Origin":
