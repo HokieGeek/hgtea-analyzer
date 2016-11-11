@@ -161,7 +161,7 @@ func IsTsvEqualToEntry(expected []string, received *Entry) (bool, error) {
 	// }
 
 	dummy, _ = strconv.Atoi(expected[8])
-	if dummy != received.SteepingVessel {
+	if VesselType(dummy) != received.SteepingVessel {
 		return false, errors.New(fmt.Sprintf("SteepingVessel field %s did not match expected %s", received.SteepingVessel, expected[8]))
 	}
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 )
@@ -19,7 +18,7 @@ var testEntries = []Entry{
 		SteepingVessel:      0, // TODO
 		SteepingTemperature: 180,
 		SessionInstance:     "DEADBEEF",
-		Fixins:              []string{"Milk", "Sugar"},
+		Fixins:              []TeaFixin{Milk, Sugar},
 	},
 }
 
@@ -79,10 +78,10 @@ func createRandomEntry() *Entry {
 	e.Rating = r.Intn(4)
 	e.Comments = createRandomString(r.Intn(5))
 	e.SteepTime = time.Duration(r.Intn(720))
-	e.SteepingVessel = r.Intn(12)
+	e.SteepingVessel = VesselType(r.Intn(9))
 	e.SteepingTemperature = r.Intn(212)
 	e.SessionInstance = createRandomString(1)
-	e.Fixins = strings.Split(createRandomString(r.Intn(3)), " ")
+	e.Fixins = []TeaFixin{TeaFixin(r.Intn(8)), TeaFixin(r.Intn(8))}
 
 	return e
 }
@@ -107,7 +106,11 @@ func createRandomTea() *Tea {
 	t.Purchased.Packaging = r.Intn(10)
 	t.Size = createRandomString(1)
 	t.LeafGrade = createRandomString(1)
-	// t.log           map[time.Time]Entry
+
+	t.log = make(map[time.Time]Entry)
+	t.logSortedKeys = make(TimeSlice, 0)
+
+	// TODO: t.log           map[time.Time]Entry
 	// t.logSortedKeys TimeSlice
 	// t.average       int
 	// t.median        int
@@ -200,6 +203,11 @@ func TestEntryParseDateTime(t *testing.T) {
 	// 	t.Fatal("Incorrectly parsed a date time with a bogus date and time")
 	// }
 
+	err = e.ParseDateTime(fecha, "13")
+	if err == nil {
+		t.Fatal("Incorrectly parsed a time without enough digits")
+	}
+
 	err = e.ParseDateTime("", tiempo)
 	if err == nil {
 		t.Fatal("Incorrectly parsed a date time with empty date value")
@@ -244,4 +252,38 @@ func TestEntryParseSteepTime(t *testing.T) {
 	if err == nil {
 		t.Fatal("Incorrectly parsed an empty value")
 	}
+}
+
+func TestTeaEquality(t *testing.T) {
+	if !testTeas[0].Equal(&testTeas[0]) {
+		t.Error("Tea equality identity test failed")
+	}
+
+	if createRandomTea().Equal(createRandomTea()) {
+		t.Error("Tea equality test with random data failed")
+	}
+}
+
+func TestLog(t *testing.T) {
+	tea := createRandomTea()
+
+	entries := make([]*Entry, rand.Intn(30))
+	for i, _ := range entries {
+		entries[i] = createRandomEntry()
+		tea.Add(*entries[i])
+	}
+
+	if tea.LogLen() != len(entries) {
+		t.Fatal("LogLen() did not report expected number of entries")
+	}
+
+	log := tea.Log()
+
+	if len(log) != tea.LogLen() {
+		t.Fatalf("LogLen() and the log do not match ins size")
+	}
+
+	// TODO
+	// for i,e := range log {
+	// }
 }

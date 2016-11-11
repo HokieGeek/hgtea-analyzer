@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/hokiegeek/hgtealib"
@@ -27,7 +28,7 @@ func printHeader(fields map[string]string, opts formatOpts) {
 				fmt.Print(opts.delimeter)
 			}
 			fmt.Printf(re_lcalpha.ReplaceAllString(fields[field], "s"), field)
-			if i == len(opts.fields) {
+			if i == len(opts.fields)-1 {
 				fmt.Println()
 			}
 		}
@@ -42,6 +43,7 @@ func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
 		"Year":    "%d",
 		"Flush":   "%9s",
 		"Origin":  "%30s",
+		"Size":    "%12s",
 		"Entries": "%7d",
 		"Avg":     "%6d",
 		"Median":  "%6d",
@@ -77,6 +79,8 @@ func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
 				fmt.Printf(fields[field], tea.Picked.Flush)
 			case field == "Origin":
 				fmt.Printf(fields[field], tea.Origin.String())
+			case field == "Size":
+				fmt.Printf(fields[field], tea.Size)
 			case field == "Entries":
 				fmt.Printf(fields[field], tea.LogLen())
 			case field == "Avg":
@@ -97,13 +101,11 @@ func printEntries(db *hgtealib.HgTeaDb, log []hgtealib.Entry, opts formatOpts) {
 		"Tea":        "%-60s",
 		"Steep Time": "%10s",
 		"Rating":     "%d",
-		"Fixins":     "%v",
-		"Vessel":     "%d",
+		"Fixins":     "%-25s",
+		"Vessel":     "%-15s",
 		"Temp":       "%d°",
-		"Session":    "%s",
-		// Comments            string
-		// SteepingVessel      int
-		// Fixins              []string
+		"Session":    "%-35s",
+		"Comments":   "%s",
 	}
 
 	printHeader(fields, opts)
@@ -124,13 +126,22 @@ func printEntries(db *hgtealib.HgTeaDb, log []hgtealib.Entry, opts formatOpts) {
 			case field == "Rating":
 				fmt.Printf(fields[field], v.Rating)
 			case field == "Fixins":
-				fmt.Printf(fields[field], v.Fixins)
+				var buf bytes.Buffer
+				for i, f := range v.Fixins {
+					if i != 0 {
+						buf.WriteString(", ")
+					}
+					buf.WriteString(f.String())
+				}
+				fmt.Printf(fields[field], buf.String())
 			case field == "Vessel":
 				fmt.Printf(fields[field], v.SteepingVessel)
 			case field == "Temp":
 				fmt.Printf(fields[field], v.SteepingTemperature)
 			case field == "Session":
 				fmt.Printf(fields[field], v.SessionInstance)
+			case field == "Comments":
+				fmt.Printf(fields[field], v.Comments)
 			}
 		}
 		fmt.Println()
@@ -177,9 +188,11 @@ func main() {
 		printTeas(teas, formatOpts{delimeter: "\t", fields: fields, porcelain: *porcelainFlag})
 	case command == "log":
 		if len(fields) == 1 && fields[0] == "*" {
-			fields = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel", "Temp", "Session"}
+			fields = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"}
 		}
 		log, _ := db.Log(filter)
 		printEntries(db, log, formatOpts{delimeter: "\t", fields: fields, porcelain: *porcelainFlag})
+	default:
+		log.Fatalf("Unrecognized command: %s\n", command)
 	}
 }

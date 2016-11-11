@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+/*
+var TeaFlushTypes = [ ["Spring", "Summer", "Fall", "Winter"],
+                      ["1st Flush", "2nd Flush", "Monsoon Flush", "Autumn Flush"] ];
+var TeaFlushTypes_Std = 0;
+var TeaFlushTypes_Indian = 1;
+*/
 type Flush float64
 
 const (
@@ -21,22 +27,108 @@ const (
 	Autumn    Flush = 4.0
 )
 
-var flushes = []string{"First", "InBetween", "Second", "Monsoon", "Autumn"}
-
 func (f Flush) String() string {
-	if f == First {
+	switch {
+	case f == First:
 		return "First"
-	} else if f == InBetween {
+	case f == InBetween:
 		return "InBetween"
-	} else if f == Second {
+	case f == Second:
 		return "Second"
-	} else if f == Monsoon {
+	case f == Monsoon:
 		return "Monsoon"
-	} else if f == Autumn {
+	case f == Autumn:
 		return "Autumn"
+	default:
+		return ""
 	}
-	return ""
 }
+
+type VesselType int
+
+const (
+	FrenchPress VesselType = 0 + iota
+	ShipiaoYixing
+	TeazerTumbler
+	TeaStick
+	MeshSpoon
+	SaucePan
+	Cup
+	Bowl
+	Gaiwan
+	Other
+)
+
+func (v VesselType) String() string {
+	switch {
+	case v == FrenchPress:
+		return "French Press"
+	case v == ShipiaoYixing:
+		return "Shipiao Yixing"
+	case v == TeazerTumbler:
+		return "Tea-zer Tumbler"
+	case v == TeaStick:
+		return "Tea stick"
+	case v == MeshSpoon:
+		return "Mesh spoon"
+	case v == SaucePan:
+		return "Sauce pan"
+	case v == Cup:
+		return "Cup"
+	case v == Bowl:
+		return "Bowl"
+	case v == Gaiwan:
+		return "Gaiwan"
+	case v == Other:
+		return "Other"
+	default:
+		return ""
+	}
+}
+
+type TeaFixin int
+
+const (
+	Milk TeaFixin = 0 + iota
+	Cream
+	HalfAndHalf
+	Sugar
+	BrownSugar
+	RawSugar
+	Honey
+	VanillaExtract
+	VanillaBean
+)
+
+func (f TeaFixin) String() string {
+	switch {
+	case f == Milk:
+		return "Milk"
+	case f == Cream:
+		return "Cream"
+	case f == HalfAndHalf:
+		return "Half & half"
+	case f == Sugar:
+		return "Sugar"
+	case f == BrownSugar:
+		return "Brown sugar"
+	case f == RawSugar:
+		return "Raw sugar"
+	case f == Honey:
+		return "Honey"
+	case f == VanillaExtract:
+		return "Vanilla extract"
+	case f == VanillaBean:
+		return "Vanilla bean"
+	default:
+		return ""
+	}
+}
+
+/*
+var TeaProductRatings = ["Value", "Leaf Aroma", "Brewed Aroma"];
+var TeaPackagingTypes = ["Loose Leaf", "Bagged", "Tuo", "Beeng", "Brick", "Mushroom", "Square"];
+*/
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
@@ -45,10 +137,10 @@ type Entry struct {
 	Rating              int
 	Comments            string
 	SteepTime           time.Duration
-	SteepingVessel      int
+	SteepingVessel      VesselType
 	SteepingTemperature int
 	SessionInstance     string
-	Fixins              []string
+	Fixins              []TeaFixin
 }
 
 func (e *Entry) ParseDateTime(d, t string) error {
@@ -265,6 +357,33 @@ func (t *Tea) Mode() int {
 	}
 
 	return t.mode
+}
+
+func (t *Tea) Equal(other *Tea) bool {
+	return t.Id == other.Id &&
+		t.Name == other.Name &&
+		t.Type == other.Type &&
+		t.Picked.Year == other.Picked.Year &&
+		t.Picked.Flush == other.Picked.Flush &&
+		t.Size == other.Size &&
+		t.Origin.Country == other.Origin.Country &&
+		t.Origin.Region == other.Origin.Region &&
+		t.Storage.Stocked == other.Storage.Stocked &&
+		t.Storage.Aging == other.Storage.Aging &&
+		t.Purchased.Location == other.Purchased.Location &&
+		t.Purchased.Date == other.Purchased.Date &&
+		t.Purchased.Price == other.Purchased.Price &&
+		t.Purchased.Packaging == other.Purchased.Packaging &&
+		t.LeafGrade == other.LeafGrade
+	/*
+		t.LeafGrade     string // TODO: enum
+
+		t.log           map[time.Time]Entry
+		t.logSortedKeys TimeSlice
+		t.average       int
+		t.median        int
+		t.mode          int
+	*/
 }
 
 func (t *Tea) String() string {

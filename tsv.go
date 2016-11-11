@@ -63,7 +63,9 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 	e.Comments = entry[5]
 
 	e.ParseSteepTime(entry[7])
-	e.SteepingVessel, _ = strconv.Atoi(entry[8])
+	dummy_int, _ := strconv.Atoi(entry[8])
+	e.SteepingVessel = VesselType(dummy_int)
+	// e.SteepingVessel, _ = strconv.Atoi(entry[8])
 	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
 	if e.SteepingTemperature == 0 {
 		// TODO: make this value depend on the type (if green or oolong, for example)
@@ -71,7 +73,11 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 	}
 
 	e.SessionInstance = entry[10]
-	e.Fixins = strings.Split(entry[11], ";")
+	for _, f := range strings.Split(entry[11], ";") {
+		dummy, _ := strconv.Atoi(f)
+		e.Fixins = append(e.Fixins, TeaFixin(dummy))
+	}
+	// e.Fixins = strings.Split(entry[11], ";")
 
 	return e, nil
 }
@@ -82,6 +88,8 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 	}
 
 	t := new(Tea)
+	t.log = make(map[time.Time]Entry)
+	t.logSortedKeys = make(TimeSlice, 0)
 
 	var err error
 	t.Id, err = strconv.Atoi(data[2])
@@ -127,9 +135,6 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 			return nil, err
 		}
 	}
-
-	t.log = make(map[time.Time]Entry)
-	t.logSortedKeys = make(TimeSlice, 0)
 
 	return t, nil
 }
