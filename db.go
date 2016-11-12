@@ -113,11 +113,8 @@ func newHgTeaDb(teas []*Tea, entries []*Entry) (*HgTeaDb, error) {
 			sort.Sort(db.logSortedKeys)
 
 			if tea, ok := db.teas[entry.Tea]; ok {
-				err := tea.Add(*entry)
+				tea.Add(*entry)
 				db.teas[entry.Tea] = tea // TODO: why do I have to do this?
-				if err != nil {
-					return nil, err
-				}
 			}
 		}
 	}

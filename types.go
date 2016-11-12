@@ -289,7 +289,7 @@ type Tea struct {
 	mode          int
 }
 
-func (t *Tea) Add(entry Entry) error {
+func (t *Tea) Add(entry Entry) {
 	if t.log == nil {
 		t.log = make(map[time.Time]Entry)
 		t.logSortedKeys = make(TimeSlice, 0)
@@ -298,8 +298,6 @@ func (t *Tea) Add(entry Entry) error {
 	t.log[entry.DateTime] = entry
 	t.logSortedKeys = append(t.logSortedKeys, entry.DateTime)
 	sort.Sort(t.logSortedKeys)
-
-	return nil
 }
 
 func (t *Tea) Log() []Entry {
@@ -337,8 +335,6 @@ func (t *Tea) Median() int {
 		sort.Ints(ratings)
 
 		t.median = ratings[((len(t.log) + 1) / 2)]
-		// } else if t.median == 0 && len(t.log) == 1 {
-		// t.median = t.log[
 	}
 
 	return t.median

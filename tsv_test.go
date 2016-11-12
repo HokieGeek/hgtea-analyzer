@@ -94,12 +94,6 @@ var testTsvEntries = [][]string{
 	},
 }
 
-var expectedValues = []int{
-	1, // Average
-	2, // Median
-	1, // Mode
-}
-
 func CreateTestTea() (*Tea, error) {
 	original_tea := testTsvTeas[0]
 
@@ -113,10 +107,7 @@ func CreateTestTea() (*Tea, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = tea.Add(*e)
-		if err != nil {
-			return nil, err
-		}
+		tea.Add(*e)
 	}
 
 	return tea, nil
@@ -278,7 +269,7 @@ func IsTsvEqualToTea(expected []string, received *Tea) (bool, error) {
 }
 
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
-func TestCreateEntry(t *testing.T) {
+func TestCreateTsvEntry(t *testing.T) {
 	original_entry := testTsvEntries[0]
 
 	e, err := newEntryFromTsv(original_entry)
@@ -291,7 +282,7 @@ func TestCreateEntry(t *testing.T) {
 	}
 }
 
-func TestCreateBadEntry(t *testing.T) {
+func TestCreateTsvBadEntry(t *testing.T) {
 	incomplete_entry := []string{time.Now().String(), "TEST"}
 	_, err := newEntryFromTsv(incomplete_entry)
 	if err == nil {
@@ -299,7 +290,7 @@ func TestCreateBadEntry(t *testing.T) {
 	}
 }
 
-func TestCreateTea(t *testing.T) {
+func TestCreateTsvTea(t *testing.T) {
 	original_tea := testTsvTeas[0]
 
 	tea, err := newTeaFromTsv(original_tea)
@@ -312,7 +303,7 @@ func TestCreateTea(t *testing.T) {
 	}
 }
 
-func TestCreateBadTea(t *testing.T) {
+func TestCreateTsvBadTea(t *testing.T) {
 	incomplete_tea := []string{time.Now().String(), "TEST"}
 	_, err := newTeaFromTsv(incomplete_tea)
 	if err == nil {
@@ -336,95 +327,42 @@ func TestCreateBadTea(t *testing.T) {
 	}
 }
 
-func TestTeaAdd(t *testing.T) {
-	original_tea := testTsvTeas[0]
-
-	tea, err := newTeaFromTsv(original_tea)
-	if err != nil {
-		t.Fatalf("Unable to create Tea: %s\n", err)
-	}
-
-	entry, err := newEntryFromTsv(testTsvEntries[0])
-	if err != nil {
-		t.Fatalf("Error creating dummy entry: %s\n", err)
-	}
-	err = tea.Add(*entry)
-	if err != nil {
-		t.Fatalf("Error adding entry to tea: %s\n", err)
-	}
-
-	// TODO
-	// if _, err := IsTsvEqualToEntry(testTsvEntries[0], tea.Log[0]); err != nil {
-	// t.Errorf("Entry object does not match expected: %s", err)
-	// }
-
-	// This should fail
-	/*
-		err = tea.Add([]string{"TEST"})
-		if err == nil {
-			t.Fatal("Successfully added bad log entry")
-		}
-	*/
-}
-
-func TestTeaAverage(t *testing.T) {
-	tea, err := CreateTestTea()
-	if err != nil {
-		t.Fatalf("Error creating a tea: %s\n", err)
-	}
-
-	val := tea.Average()
-	if expectedValues[0] != val {
-		t.Errorf("Calculated average %d does not match expected: %d\n", val, expectedValues[0])
-	}
-}
-
-func TestTeaMedian(t *testing.T) {
-	tea, err := CreateTestTea()
-	if err != nil {
-		t.Fatalf("Error creating a tea: %s\n", err)
-	}
-
-	val := tea.Median()
-	if expectedValues[1] != val {
-		t.Errorf("Calculated median %d does not match expected: %d\n", val, expectedValues[1])
-	}
-}
-
-func TestTeaMode(t *testing.T) {
-	tea, err := CreateTestTea()
-	if err != nil {
-		t.Fatalf("Error creating a tea: %s\n", err)
-	}
-
-	val := tea.Mode()
-	if expectedValues[2] != val {
-		t.Errorf("Calculated mode %d does not match expected: %d\n", val, expectedValues[2])
-	}
-}
-
-func TestTeaString(t *testing.T) {
-	original_tea := testTsvTeas[0]
-
-	tea, err := newTeaFromTsv(original_tea)
-	if err != nil {
-		t.Fatalf("Unable to create Tea: %s\n", err)
-	}
-
-	if len(tea.String()) <= 0 {
-		t.Error("Tea String() function returned empty string")
-	}
+func serveTsvData(data [][]string) error {
+	// TODO:
+	return nil
 }
 
 func TestGetSheetTsv(t *testing.T) {
-	t.Skip("TODO")
+	// TODO: Test with real fake data
 
-	// db, err := getSheet("https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv")
-	// if err != nil {
-	// return nil, err
+	// Test for shitty values
+	_, err := getSheetTsv("", "")
+	if err == nil {
+		t.Error("Did not receive expected error on blank url")
+	}
+
+	_, err = getSheetTsv("FOOBAR", "")
+	if err == nil {
+		t.Error("Did not receive expected error on bad url value")
+	}
+
+	// data, err := getSheetTsv("http://www.google.com/robots.txt", "")
+	// if err == nil {
+	// t.Errorf("Did not receive expected error on real but non tsv data: %v", data)
 	// }
 }
 
 func TestNewFromTsv(t *testing.T) {
 	t.Skip("TODO")
+
+	// Test with bad values
+	_, err := NewFromTsv("", "", "")
+	if err == nil {
+		t.Error("Did not receive expected error on blank urls")
+	}
+
+	_, err = NewFromTsv("FOO", "BAR", "")
+	if err == nil {
+		t.Error("Did not receive expected error on bad url value")
+	}
 }

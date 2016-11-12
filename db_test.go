@@ -170,6 +170,31 @@ func TestHgTeaDbTeasFiltered(t *testing.T) {
 
 	// TODO: do Samples when it is implemented
 
+	// Build map of types in the test array
+	types := make(map[string]int)
+	for _, v := range testTeas {
+		types[v.Type]++
+	}
+
+	for k, v := range types {
+		teas, err := db.Teas(NewFilter().Type(k))
+		if err != nil {
+			t.Error(err)
+		}
+
+		if len(teas) != v {
+			t.Fatal("Expected %d teas of type %s but got %d", v, k, len(teas))
+		}
+	}
+
+	teas, err := db.Teas(NewFilter().Type(createRandomString(1)))
+	if err != nil {
+		t.Error("Received unexpected error when retrieving teas with nonexistent type")
+	}
+
+	if len(teas) > 0 {
+		t.Error("Unexpectedly found teas of a nonexistent type")
+	}
 }
 
 func TestHgTeaDbTea(t *testing.T) {
@@ -183,5 +208,15 @@ func TestHgTeaDbTea(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+
+	db, err = newHgTeaDb([]*Tea{}, []*Entry{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = db.Tea(1)
+	if err == nil {
+		t.Error("Did not throw error when retrieving unavailable tea id")
 	}
 }

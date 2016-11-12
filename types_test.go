@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"sort"
 	"testing"
 	"time"
 )
@@ -62,7 +63,6 @@ var testTeas = []*Tea{
 		},
 		Origin: TeaOrigin{
 			Country: "China",
-			Region:  "Yunnan",
 		},
 		Storage: TeaStorageState{
 			Stocked: false,
@@ -140,7 +140,14 @@ func createRandomTea(withEntries bool) *Tea {
 	t.logSortedKeys = make(TimeSlice, 0)
 
 	if withEntries {
-		for i := rand.Intn(30); i != 0; i-- {
+		var numEntries int
+		for {
+			numEntries = rand.Intn(30)
+			if numEntries > 0 {
+				break
+			}
+		}
+		for i := numEntries; i != 0; i-- {
 			e := createRandomEntry()
 			t.Add(*e)
 		}
@@ -151,6 +158,56 @@ func createRandomTea(withEntries bool) *Tea {
 	// t.mode          int
 
 	return t
+}
+
+func TestFlushString(t *testing.T) {
+	for _, v := range []Flush{First, InBetween, Second, Monsoon, Autumn} {
+		if v.String() == "" {
+			t.Error("Flush type did not return a useful string")
+		}
+	}
+
+	v := Flush(1.1).String()
+	if v != "" {
+		t.Errorf("Expected empty string but found '%s' instead", v)
+	}
+}
+
+func TestVesselTypeString(t *testing.T) {
+	for _, v := range []VesselType{FrenchPress, ShipiaoYixing, TeazerTumbler, TeaStick, MeshSpoon, SaucePan, Cup, Bowl, Gaiwan, Other} {
+		if v.String() == "" {
+			t.Error("VesselType type did not return a useful string")
+		}
+	}
+
+	v := VesselType(-1).String()
+	if v != "" {
+		t.Errorf("Expected empty string but found '%s' instead", v)
+	}
+}
+
+func TestTeaFixinString(t *testing.T) {
+	for _, v := range []TeaFixin{Milk, Cream, HalfAndHalf, Sugar, BrownSugar, RawSugar, Honey, VanillaExtract, VanillaBean} {
+		if v.String() == "" {
+			t.Error("TeaFixin type did not return a useful string")
+		}
+	}
+
+	v := TeaFixin(-1).String()
+	if v != "" {
+		t.Errorf("Expected empty string but found '%s' instead", v)
+	}
+}
+
+func TestTeaOriginString(t *testing.T) {
+	expected := fmt.Sprintf("%s, %s", testTeas[0].Origin.Region, testTeas[0].Origin.Country)
+	if testTeas[0].Origin.String() != expected {
+		t.Errorf("Expected origin string '%s' but found '%s'", expected, testTeas[0].Origin.String())
+	}
+
+	if testTeas[1].Origin.String() != testTeas[1].Origin.Country {
+		t.Errorf("Expected origin string '%s' but found '%s'", testTeas[1].Origin.Country, testTeas[0].Origin.String())
+	}
 }
 
 func TestEntryEquality(t *testing.T) {
@@ -320,4 +377,85 @@ func TestLog(t *testing.T) {
 	// TODO
 	// for i,e := range log {
 	// }
+}
+
+func TestTeaAdd(t *testing.T) {
+	tea := createRandomTea(false)
+	entry := createRandomEntry()
+	tea.Add(*entry)
+
+	log := tea.Log()
+	if len(log) != 1 {
+		t.Fatalf("Found %d entries when expected 1: %v", len(log), log)
+	}
+
+	if !entry.Equal(&log[0]) {
+		t.Fatal("Added entry did not match expected")
+	}
+}
+
+func TestTeaAverage(t *testing.T) {
+	for i := rand.Intn(10); i >= 0; i-- {
+		var total int
+
+		tea := createRandomTea(true)
+
+		for _, entry := range tea.Log() {
+			total += entry.Rating
+		}
+
+		avg := total / tea.LogLen()
+
+		if avg != tea.Average() {
+			t.Fatalf("Expected average of %d and found %d", avg, tea.Average())
+		}
+	}
+}
+
+func TestTeaMedian(t *testing.T) {
+	for i := rand.Intn(10); i >= 0; i-- {
+		tea := createRandomTea(true)
+
+		ratings := make([]int, tea.LogLen())
+		for i, entry := range tea.Log() {
+			ratings[i] = entry.Rating
+		}
+		sort.Ints(ratings)
+
+		median := ratings[((tea.LogLen() + 1) / 2)]
+
+		if median != tea.Median() {
+			t.Fatalf("Expected median of %d and found %d", median, tea.Median())
+		}
+	}
+}
+
+func TestTeaMode(t *testing.T) {
+	for i := rand.Intn(10); i >= 0; i-- {
+		tea := createRandomTea(true)
+
+		ratings := make([]int, 5)
+		for _, entry := range tea.log {
+			ratings[entry.Rating]++
+		}
+
+		var max int
+		for rating, count := range ratings {
+			if count > ratings[max] {
+				max = rating
+			}
+		}
+
+		if max != tea.Mode() {
+			t.Errorf("Calculated mode %d does not match expected: %d\n", max, tea.Mode())
+		}
+	}
+}
+
+func TestTeaString(t *testing.T) {
+	tea := createRandomTea(false)
+
+	if tea.String() == "" {
+		t.Error("Tea String() function returned empty string")
+	}
 }
