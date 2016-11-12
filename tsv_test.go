@@ -353,7 +353,7 @@ func TestGetSheetTsv(t *testing.T) {
 }
 
 func TestNewFromTsv(t *testing.T) {
-	t.Skip("TODO")
+	// TODO: Test with real values
 
 	// Test with bad values
 	_, err := NewFromTsv("", "", "")
