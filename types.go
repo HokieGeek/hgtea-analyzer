@@ -334,7 +334,11 @@ func (t *Tea) Median() int {
 		}
 		sort.Ints(ratings)
 
-		t.median = ratings[((len(t.log) + 1) / 2)]
+		if (len(ratings) % 2) == 0 {
+			t.median = (ratings[len(ratings)/2] + ratings[(len(ratings)/2)-1]) / 2
+		} else {
+			t.median = ratings[len(ratings)/2]
+		}
 	}
 
 	return t.median

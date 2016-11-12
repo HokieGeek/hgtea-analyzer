@@ -422,7 +422,12 @@ func TestTeaMedian(t *testing.T) {
 		}
 		sort.Ints(ratings)
 
-		median := ratings[((tea.LogLen() + 1) / 2)]
+		var median int
+		if (len(ratings) % 2) == 0 {
+			median = (ratings[len(ratings)/2] + ratings[(len(ratings)/2)-1]) / 2
+		} else {
+			median = ratings[len(ratings)/2]
+		}
 
 		if median != tea.Median() {
 			t.Fatalf("Expected median of %d and found %d", median, tea.Median())
