@@ -63,20 +63,20 @@ func TestFilterType(t *testing.T) {
 
 }
 
-func TestNewHgTeaDb(t *testing.T) {
-	_, err := newHgTeaDb(testTeas, testEntries)
+func TestNewTeaDb(t *testing.T) {
+	_, err := newTeaDb(testTeas, testEntries)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = newHgTeaDb([]*Tea{}, []*Entry{})
+	_, err = newTeaDb([]*Tea{}, []*Entry{})
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestHgTeaDbLog(t *testing.T) {
-	db, err := newHgTeaDb(testTeas, testEntries)
+func TestTeaDbLog(t *testing.T) {
+	db, err := newTeaDb(testTeas, testEntries)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,8 +103,8 @@ func TestHgTeaDbLog(t *testing.T) {
 	}
 }
 
-func TestHgTeaDbTeas(t *testing.T) {
-	db, err := newHgTeaDb(testTeas, testEntries)
+func TestTeaDbTeas(t *testing.T) {
+	db, err := newTeaDb(testTeas, testEntries)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,8 +139,8 @@ func TestHgTeaDbTeas(t *testing.T) {
 	}
 }
 
-func TestHgTeaDbTeasFiltered(t *testing.T) {
-	db, err := newHgTeaDb(testTeas, testEntries)
+func TestTeaDbTeasFiltered(t *testing.T) {
+	db, err := newTeaDb(testTeas, testEntries)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,8 +197,8 @@ func TestHgTeaDbTeasFiltered(t *testing.T) {
 	}
 }
 
-func TestHgTeaDbTea(t *testing.T) {
-	db, err := newHgTeaDb(testTeas, testEntries)
+func TestTeaDbTea(t *testing.T) {
+	db, err := newTeaDb(testTeas, testEntries)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +210,7 @@ func TestHgTeaDbTea(t *testing.T) {
 		}
 	}
 
-	db, err = newHgTeaDb([]*Tea{}, []*Entry{})
+	db, err = newTeaDb([]*Tea{}, []*Entry{})
 	if err != nil {
 		t.Fatal(err)
 	}

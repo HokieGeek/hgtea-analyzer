@@ -98,7 +98,7 @@ func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
 	}
 }
 
-func printEntries(db *hgtealib.HgTeaDb, log []hgtealib.Entry, opts formatOpts) {
+func printEntries(db *hgtealib.TeaDb, log []hgtealib.Entry, opts formatOpts) {
 	fields := map[string]string{
 		"Time":       "%-21s",
 		"Tea":        "%-60s",

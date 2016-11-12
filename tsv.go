@@ -140,7 +140,7 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 	return t, nil
 }
 
-func NewFromTsv(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
+func NewFromTsv(teas_url, log_url, proxyAddr string) (*TeaDb, error) {
 	// Get the tea database
 	teasTsv, err := getSheetTsv(teas_url, proxyAddr)
 	if err != nil {
@@ -173,5 +173,5 @@ func NewFromTsv(teas_url, log_url, proxyAddr string) (*HgTeaDb, error) {
 		entries = append(entries, e)
 	}
 
-	return newHgTeaDb(teas, entries)
+	return newTeaDb(teas, entries)
 }

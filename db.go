@@ -50,13 +50,13 @@ func NewFilter() *Filter {
 	return f
 }
 
-type HgTeaDb struct {
+type TeaDb struct {
 	teas          map[int]Tea
 	log           map[time.Time]Entry
 	logSortedKeys TimeSlice
 }
 
-func (d *HgTeaDb) Teas(filter *Filter) (map[int]Tea, error) {
+func (d *TeaDb) Teas(filter *Filter) (map[int]Tea, error) {
 	teas := make(map[int]Tea)
 	for k, v := range d.teas {
 		// Now apply the filters
@@ -79,14 +79,14 @@ func (d *HgTeaDb) Teas(filter *Filter) (map[int]Tea, error) {
 	return teas, nil
 }
 
-func (d *HgTeaDb) Tea(id int) (Tea, error) {
+func (d *TeaDb) Tea(id int) (Tea, error) {
 	if val, ok := d.teas[id]; ok {
 		return val, nil
 	}
 	return *new(Tea), errors.New(fmt.Sprintf("Could not retrieve Tea by id: %d", id))
 }
 
-func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
+func (d *TeaDb) Log(filter *Filter) ([]Entry, error) {
 	log := make([]Entry, 0)
 	for _, k := range d.logSortedKeys {
 		log = append(log, d.log[k])
@@ -94,8 +94,8 @@ func (d *HgTeaDb) Log(filter *Filter) ([]Entry, error) {
 	return log, nil
 }
 
-func newHgTeaDb(teas []*Tea, entries []*Entry) (*HgTeaDb, error) {
-	db := new(HgTeaDb)
+func newTeaDb(teas []*Tea, entries []*Entry) (*TeaDb, error) {
+	db := new(TeaDb)
 	db.teas = make(map[int]Tea)
 	db.log = make(map[time.Time]Entry)
 
