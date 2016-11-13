@@ -323,7 +323,7 @@ func (t *Tea) Average() int {
 }
 
 func (t *Tea) Median() int {
-	if t.median == 0 && len(t.log) > 1 {
+	if t.median == 0 {
 		ratings := make([]int, len(t.log))
 		var count int
 		for _, entry := range t.log {

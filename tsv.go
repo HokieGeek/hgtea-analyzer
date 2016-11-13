@@ -144,6 +144,10 @@ func NewFromTsv(teas_url, log_url, proxyAddr string) (*TeaDb, error) {
 		return nil, err
 	}
 
+	if len(teasTsv) <= 0 {
+		return nil, errors.New("Did not retrieve any teas from the given URL")
+	}
+
 	teas := make([]*Tea, 0)
 	for _, tea := range teasTsv[1:] {
 		t, err := newTeaFromTsv(tea)
