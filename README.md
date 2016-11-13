@@ -1,2 +1,2 @@
-# hgtealib [![Build Status](https://travis-ci.org/HokieGeek/hgtealib.svg?branch=master)](https://travis-ci.org/HokieGeek/hgtealib) [![Coverage](http://gocover.io/_badge/github.com/HokieGeek/hgtealib?0)](http://gocover.io/github.com/HokieGeek/hgtealib) [![GoDoc](http://godoc.org/github.com/HokieGeek/hgtealib?status.png)](http://godoc.org/github.com/HokieGeek/hgtealib)
+# hgtealib [![Build Status](https://travis-ci.org/HokieGeek/hgtealib.svg?branch=master)](https://travis-ci.org/HokieGeek/hgtealib) [![Coverage](http://gocover.io/_badge/github.com/HokieGeek/hgtealib)](http://gocover.io/github.com/HokieGeek/hgtealib) [![GoDoc](http://godoc.org/github.com/HokieGeek/hgtealib?status.png)](http://godoc.org/github.com/HokieGeek/hgtealib)
 Helps me analyze my tea drinking habits
