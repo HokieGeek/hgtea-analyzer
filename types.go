@@ -190,10 +190,8 @@ func (e *Entry) ParseDateTime(d, t string) error {
 		return err
 	}
 
-	loc, err := time.LoadLocation("America/New_York")
-	if err != nil {
-		return err
-	}
+	// In theory, this should never result in an error
+	loc, _ := time.LoadLocation("America/New_York")
 
 	e.DateTime = time.Date(year, time.Month(month), day, hour, minute, 0, 0, loc)
 
