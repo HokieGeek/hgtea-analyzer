@@ -109,8 +109,7 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 	t.Storage.Aging = (data[20] == "TRUE")
 
 	if data[6] != "" {
-		t.Picked.Year, err = strconv.Atoi(data[6])
-		if err != nil {
+		if t.Picked.Year, err = strconv.Atoi(data[6]); err != nil {
 			return nil, err
 		}
 	}
@@ -125,14 +124,12 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 	t.Purchased.Location = data[8]
 	t.Purchased.Date = data[9]
 	if data[10] != "" {
-		t.Purchased.Price, err = strconv.ParseFloat(data[10], 64)
-		if err != nil {
+		if t.Purchased.Price, err = strconv.ParseFloat(data[10], 64); err != nil {
 			return nil, err
 		}
 	}
 	if data[21] != "" {
-		t.Purchased.Packaging, err = strconv.Atoi(data[21])
-		if err != nil {
+		if t.Purchased.Packaging, err = strconv.Atoi(data[21]); err != nil {
 			return nil, err
 		}
 	}

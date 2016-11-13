@@ -283,9 +283,7 @@ func TestCreateTsvEntry(t *testing.T) {
 }
 
 func TestCreateTsvBadEntry(t *testing.T) {
-	incomplete_entry := []string{time.Now().String(), "TEST"}
-	_, err := newEntryFromTsv(incomplete_entry)
-	if err == nil {
+	if _, err := newEntryFromTsv([]string{time.Now().String(), "TEST"}); err == nil {
 		t.Fatal("Successfully created badly formatted entry")
 	}
 }
@@ -304,25 +302,21 @@ func TestCreateTsvTea(t *testing.T) {
 }
 
 func TestCreateTsvBadTea(t *testing.T) {
-	incomplete_tea := []string{time.Now().String(), "TEST"}
-	_, err := newTeaFromTsv(incomplete_tea)
-	if err == nil {
+	if _, err := newTeaFromTsv([]string{time.Now().String(), "TEST"}); err == nil {
 		t.Fatal("Successfully created badly formatted tea")
 	}
 
 	bad_id_tea := make([]string, len(testTsvTeas[0]))
 	copy(bad_id_tea, testTsvTeas[0])
 	bad_id_tea[2] = "one"
-	_, err = newTeaFromTsv(bad_id_tea)
-	if err == nil {
+	if _, err := newTeaFromTsv(bad_id_tea); err == nil {
 		t.Fatal("Successfully created tea with bad Id")
 	}
 
 	bad_year_tea := make([]string, len(testTsvTeas[0]))
 	copy(bad_year_tea, testTsvTeas[0])
 	bad_year_tea[6] = "MMXVI"
-	_, err = newTeaFromTsv(bad_year_tea)
-	if err == nil {
+	if _, err := newTeaFromTsv(bad_year_tea); err == nil {
 		t.Fatal("Successfully created tea with bad Year")
 	}
 }
@@ -336,33 +330,29 @@ func TestGetSheetTsv(t *testing.T) {
 	// TODO: Test with real fake data
 
 	// Test for shitty values
-	_, err := getSheetTsv("", "")
-	if err == nil {
+	if _, err := getSheetTsv("", ""); err == nil {
 		t.Error("Did not receive expected error on blank url")
 	}
 
-	_, err = getSheetTsv("FOOBAR", "")
-	if err == nil {
+	if _, err := getSheetTsv("FOOBAR", ""); err == nil {
 		t.Error("Did not receive expected error on bad url value")
 	}
 
-	// data, err := getSheetTsv("http://www.google.com/robots.txt", "")
-	// if err == nil {
-	// t.Errorf("Did not receive expected error on real but non tsv data: %v", data)
-	// }
+	_, err := getSheetTsv("http://www.google.com/robots.txt", "")
+	if err != nil {
+		t.Error("Received unexpected error when using random URL that should work")
+	}
 }
 
 func TestNewFromTsv(t *testing.T) {
 	// TODO: Test with real values
 
 	// Test with bad values
-	_, err := NewFromTsv("", "", "")
-	if err == nil {
+	if _, err := NewFromTsv("", "", ""); err == nil {
 		t.Error("Did not receive expected error on blank urls")
 	}
 
-	_, err = NewFromTsv("FOO", "BAR", "")
-	if err == nil {
+	if _, err := NewFromTsv("FOO", "BAR", ""); err == nil {
 		t.Error("Did not receive expected error on bad url value")
 	}
 }

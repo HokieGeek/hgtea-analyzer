@@ -167,8 +167,7 @@ func TestFlushString(t *testing.T) {
 		}
 	}
 
-	v := Flush(1.1).String()
-	if v != "" {
+	if v := Flush(1.1).String(); v != "" {
 		t.Errorf("Expected empty string but found '%s' instead", v)
 	}
 }
@@ -180,8 +179,7 @@ func TestVesselTypeString(t *testing.T) {
 		}
 	}
 
-	v := VesselType(-1).String()
-	if v != "" {
+	if v := VesselType(-1).String(); v != "" {
 		t.Errorf("Expected empty string but found '%s' instead", v)
 	}
 }
@@ -193,8 +191,7 @@ func TestTeaFixinString(t *testing.T) {
 		}
 	}
 
-	v := TeaFixin(-1).String()
-	if v != "" {
+	if v := TeaFixin(-1).String(); v != "" {
 		t.Errorf("Expected empty string but found '%s' instead", v)
 	}
 }
@@ -227,90 +224,73 @@ func TestEntryParseDateTime(t *testing.T) {
 	fecha := "10/11/1314"
 	tiempo := "1234"
 
-	err := e.ParseDateTime(fecha, tiempo)
-	if err != nil {
+	if err := e.ParseDateTime(fecha, tiempo); err != nil {
 		t.Error(err)
 	}
 
-	fecha_found := e.DateTime.Format("1/02/2006")
-	if fecha_found != fecha {
+	if fecha_found := e.DateTime.Format("1/02/2006"); fecha_found != fecha {
 		t.Fatalf("Expected date to be %s but found %s", fecha, fecha_found)
 	}
 
-	tiempo_found := e.DateTime.Format("1504")
-	if tiempo_found != tiempo {
+	if tiempo_found := e.DateTime.Format("1504"); tiempo_found != tiempo {
 		t.Fatalf("Expected time to be %s but found %s", tiempo, tiempo_found)
 	}
 
 	// Test for failure
-	err = e.ParseDateTime("foo", "bar")
-	if err == nil {
+	if e.ParseDateTime("foo", "bar") == nil {
 		t.Fatal("Incorrectly parsed a string instead of a time value")
 	}
 
-	err = e.ParseDateTime("20/50/", tiempo)
-	if err == nil {
+	if e.ParseDateTime("20/50/", tiempo) == nil {
 		t.Fatal("Incorrectly parsed a date time with a badly formatted date")
 	}
 
-	err = e.ParseDateTime("10/11/YYYY", tiempo)
-	if err == nil {
+	if e.ParseDateTime("10/11/YYYY", tiempo) == nil {
 		t.Fatal("Incorrectly parsed a date time with a text date")
 	}
 
-	err = e.ParseDateTime("10/DD/1314", tiempo)
-	if err == nil {
+	if e.ParseDateTime("10/DD/1314", tiempo) == nil {
 		t.Fatal("Incorrectly parsed a date time with a text date")
 	}
 
-	err = e.ParseDateTime("MM/11/1314", tiempo)
-	if err == nil {
+	if e.ParseDateTime("MM/11/1314", tiempo) == nil {
 		t.Fatal("Incorrectly parsed a date time with a text date")
 	}
 
-	err = e.ParseDateTime(fecha, "12MM")
-	if err == nil {
+	if e.ParseDateTime(fecha, "12MM") == nil {
 		t.Fatal("Incorrectly parsed a date time with text minutes")
 	}
 
-	err = e.ParseDateTime(fecha, "HH34")
-	if err == nil {
+	if e.ParseDateTime(fecha, "HH34") == nil {
 		t.Fatal("Incorrectly parsed a date time with a text hours")
 	}
 
 	// TODO: the ParseDateTime function needs to do some valiation
-	// err = e.ParseDateTime("40/50/1", tiempo)
-	// if err == nil {
+	// if e.ParseDateTime("40/50/1", tiempo) == nil {
 	// 	t.Fatal("Incorrectly parsed a date time with a bogus date")
 	// }
 
-	// err = e.ParseDateTime(fecha, "5678")
-	// if err == nil {
+	// if e.ParseDateTime(fecha, "5678") == nil {
 	// 	t.Fatal("Incorrectly parsed a date time with a bogus time")
 	// }
 
-	// err = e.ParseDateTime("40/50/1", "5678")
-	// if err == nil {
+	// if e.ParseDateTime("40/50/1", "5678") == nil {
 	// 	t.Fatal("Incorrectly parsed a date time with a bogus date and time")
 	// }
 
-	err = e.ParseDateTime(fecha, "13")
-	if err == nil {
+	if e.ParseDateTime(fecha, "13") == nil {
 		t.Fatal("Incorrectly parsed a time without enough digits")
 	}
 
-	err = e.ParseDateTime("", tiempo)
-	if err == nil {
+	if e.ParseDateTime("", tiempo) == nil {
 		t.Fatal("Incorrectly parsed a date time with empty date value")
 	}
 
-	err = e.ParseDateTime(fecha, "")
-	if err == nil {
+	if e.ParseDateTime(fecha, "") == nil {
 		t.Fatal("Incorrectly parsed a date time with empty time value")
 	}
 
-	err = e.ParseDateTime("", "")
-	if err == nil {
+	if e.ParseDateTime("", "") == nil {
 		t.Fatal("Incorrectly parsed a date time with all values blank")
 	}
 }
@@ -319,8 +299,7 @@ func TestEntryParseSteepTime(t *testing.T) {
 	e := createRandomEntry()
 
 	// Test good duration
-	err := e.ParseSteepTime("4m 20s")
-	if err != nil {
+	if err := e.ParseSteepTime("4m 20s"); err != nil {
 		t.Error(err)
 	}
 
@@ -329,18 +308,15 @@ func TestEntryParseSteepTime(t *testing.T) {
 	}
 
 	// Test failure
-	err = e.ParseSteepTime("foobar")
-	if err == nil {
+	if e.ParseSteepTime("foobar") == nil {
 		t.Fatal("Incorrectly parsed a string instead of a time value")
 	}
 
-	err = e.ParseSteepTime("4u 70s")
-	if err == nil {
+	if e.ParseSteepTime("4u 70s") == nil {
 		t.Fatal("Incorrectly parsed a steep time with a bogus unit")
 	}
 
-	err = e.ParseSteepTime("")
-	if err == nil {
+	if e.ParseSteepTime("") == nil {
 		t.Fatal("Incorrectly parsed an empty value")
 	}
 }
@@ -458,9 +434,7 @@ func TestTeaMode(t *testing.T) {
 }
 
 func TestTeaString(t *testing.T) {
-	tea := createRandomTea(false)
-
-	if tea.String() == "" {
+	if createRandomTea(false).String() == "" {
 		t.Error("Tea String() function returned empty string")
 	}
 }

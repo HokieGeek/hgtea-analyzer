@@ -41,8 +41,7 @@ func TestFilterTypes(t *testing.T) {
 		}
 	}
 
-	f = NewFilter().Types([]string{"", "", "", ""})
-	if len(f.types) != 0 {
+	if f = NewFilter().Types([]string{"", "", "", ""}); len(f.types) != 0 {
 		t.Error("Was able to add empty types to the Filter")
 	}
 }
@@ -50,8 +49,8 @@ func TestFilterTypes(t *testing.T) {
 func TestFilterType(t *testing.T) {
 	testTypes := []string{"T1", "T2", "T3"}
 	f := NewFilter()
-	for _, v := range testTypes {
 
+	for _, v := range testTypes {
 		f = f.Type(v)
 	}
 
@@ -64,13 +63,11 @@ func TestFilterType(t *testing.T) {
 }
 
 func TestNewTeaDb(t *testing.T) {
-	_, err := newTeaDb(testTeas, testEntries)
-	if err != nil {
+	if _, err := newTeaDb(testTeas, testEntries); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = newTeaDb([]*Tea{}, []*Entry{})
-	if err != nil {
+	if _, err := newTeaDb([]*Tea{}, []*Entry{}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -215,8 +212,7 @@ func TestTeaDbTea(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = db.Tea(1)
-	if err == nil {
+	if _, err = db.Tea(1); err == nil {
 		t.Error("Did not throw error when retrieving unavailable tea id")
 	}
 }
