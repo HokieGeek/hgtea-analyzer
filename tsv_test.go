@@ -1,13 +1,17 @@
 package hgtealib
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
 )
 
+var testTsvTeasHeader = []string{"Timestamp", "Date", "ID", "Name", "Type", "Region", "Year", "Flush", "Purchase Location", "Purchase Date", "Purchase Price", "Ratings", "Comments", "Pictures", "Country", "Leaf Grade", "Blended Teas", "Blend Ratio", "Size", "Stocked", "Aging", "Packaging"}
 var testTsvTeas = [][]string{
 	[]string{
 		time.Now().String(), // 0
@@ -35,6 +39,7 @@ var testTsvTeas = [][]string{
 	},
 }
 
+var testTsvEntriesHeader = []string{"Timestamp", "Date", "Time", "Tea", "Rating", "Comments", "Pictures", "Steep Time", "Steeping Vessel", "Steep Temperature", "Session Instance", "Fixins"}
 var testTsvEntries = [][]string{
 	[]string{
 		time.Now().String(), // 0
@@ -88,10 +93,37 @@ var testTsvEntries = [][]string{
 		"pics", // 6
 		"1m 1s",
 		"0",
-		"212", // 9
+		"0", // 9
 		"01i90o3ahda92h",
 		"",
 	},
+}
+
+func compareTsvArrays(a1, a2 [][]string) error {
+	if a1 == nil && a2 == nil {
+		return nil
+	}
+
+	if a1 == nil || a2 == nil {
+		return errors.New("One of the arrays is unexpectedly nil")
+	}
+
+	if len(a1) != len(a2) {
+		return errors.New(fmt.Sprintf("Found an array of size %d when expected size %d", len(a1), len(a2)))
+	}
+
+	for i, row := range a1 {
+		if len(row) != len(a2[i]) {
+			return errors.New("Incorrect number of fields returned")
+		}
+		for j, field := range row {
+			if field != a2[i][j] {
+				return errors.New(fmt.Sprintf("Expected field value of %s at position [%d][%d], but found %s", a2[i][j], i, j, field))
+			}
+		}
+	}
+
+	return nil
 }
 
 func CreateTestTea() (*Tea, error) {
@@ -113,7 +145,7 @@ func CreateTestTea() (*Tea, error) {
 	return tea, nil
 }
 
-func IsTsvEqualToEntry(expected []string, received *Entry) (bool, error) {
+func isTsvEqualToEntry(expected []string, received *Entry) (bool, error) {
 	// TODO: timestamp
 	// if expected[0] != received.Timestamp {
 
@@ -170,7 +202,7 @@ func IsTsvEqualToEntry(expected []string, received *Entry) (bool, error) {
 	return true, nil
 }
 
-func IsTsvEqualToTea(expected []string, received *Tea) (bool, error) {
+func isTsvEqualToTea(expected []string, received *Tea) (bool, error) {
 	// TODO: timestamp
 	// if expected[0] != received.Timestamp {
 
@@ -277,7 +309,7 @@ func TestCreateTsvEntry(t *testing.T) {
 		t.Fatalf("Unable to create Entry: %s\n", err)
 	}
 
-	if _, err := IsTsvEqualToEntry(original_entry, e); err != nil {
+	if _, err := isTsvEqualToEntry(original_entry, e); err != nil {
 		t.Errorf("Entry object does not match expected: %s", err)
 	}
 }
@@ -296,7 +328,7 @@ func TestCreateTsvTea(t *testing.T) {
 		t.Fatalf("Unable to create Tea: %s\n", err)
 	}
 
-	if _, err := IsTsvEqualToTea(original_tea, tea); err != nil {
+	if _, err := isTsvEqualToTea(original_tea, tea); err != nil {
 		t.Errorf("Tea object does not match expected: %s", err)
 	}
 }
@@ -306,28 +338,79 @@ func TestCreateTsvBadTea(t *testing.T) {
 		t.Fatal("Successfully created badly formatted tea")
 	}
 
-	bad_id_tea := make([]string, len(testTsvTeas[0]))
-	copy(bad_id_tea, testTsvTeas[0])
-	bad_id_tea[2] = "one"
-	if _, err := newTeaFromTsv(bad_id_tea); err == nil {
+	bad_tea := make([]string, len(testTsvTeas[0]))
+	copy(bad_tea, testTsvTeas[0])
+	bad_tea[2] = "one"
+	if _, err := newTeaFromTsv(bad_tea); err == nil {
 		t.Fatal("Successfully created tea with bad Id")
 	}
 
-	bad_year_tea := make([]string, len(testTsvTeas[0]))
-	copy(bad_year_tea, testTsvTeas[0])
-	bad_year_tea[6] = "MMXVI"
-	if _, err := newTeaFromTsv(bad_year_tea); err == nil {
+	copy(bad_tea, testTsvTeas[0])
+	bad_tea[6] = "MMXVI"
+	if _, err := newTeaFromTsv(bad_tea); err == nil {
 		t.Fatal("Successfully created tea with bad Year")
+	}
+
+	copy(bad_tea, testTsvTeas[0])
+	bad_tea[7] = "FOOBAR"
+	if _, err := newTeaFromTsv(bad_tea); err == nil {
+		t.Fatal("Successfully created tea with bad Flush")
+	}
+
+	copy(bad_tea, testTsvTeas[0])
+	bad_tea[10] = "Monsoon"
+	if _, err := newTeaFromTsv(bad_tea); err == nil {
+		t.Fatal("Successfully created tea with a bad Flush value")
+	}
+
+	copy(bad_tea, testTsvTeas[0])
+	bad_tea[21] = "Cube"
+	if _, err := newTeaFromTsv(bad_tea); err == nil {
+		t.Fatal("Successfully created tea with bad Packaging type")
 	}
 }
 
-func serveTsvData(data [][]string) error {
+func getTsvServer(data [][]string) *httptest.Server {
 	// TODO:
-	return nil
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var buf bytes.Buffer
+
+		for i, entry := range data {
+			if i != 0 {
+				buf.WriteString("\n")
+			}
+			for j, field := range entry {
+				if j != 0 {
+					buf.WriteString("\t")
+				}
+				buf.WriteString(field)
+			}
+		}
+
+		fmt.Fprint(w, buf.String())
+	}))
+
+	return ts
 }
 
 func TestGetSheetTsv(t *testing.T) {
-	// TODO: Test with real fake data
+	expectedData := [][]string{
+		[]string{"T0.1", "T0.2", "T0.3"},
+		[]string{"T1.1", "T1.2", ""},
+		[]string{"T2.1", "", ""},
+	}
+
+	tsvServer := getTsvServer(expectedData)
+	defer tsvServer.Close()
+
+	testData, err := getSheetTsv(tsvServer.URL, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := compareTsvArrays(testData, expectedData); err != nil {
+		t.Fatal(err)
+	}
 
 	// Test for shitty values
 	if _, err := getSheetTsv("", ""); err == nil {
@@ -338,14 +421,54 @@ func TestGetSheetTsv(t *testing.T) {
 		t.Error("Did not receive expected error on bad url value")
 	}
 
-	_, err := getSheetTsv("http://www.google.com/robots.txt", "")
-	if err != nil {
-		t.Error("Received unexpected error when using random URL that should work")
+	tsvBadServer := getTsvServer([][]string{
+		[]string{"T0.1", "T0.2"},
+		[]string{"T1.1"},
+	})
+	defer tsvBadServer.Close()
+
+	if _, err := getSheetTsv(tsvBadServer.URL, ""); err == nil {
+		t.Error("Did not encounter expected error")
 	}
+
+	// _, err = getSheetTsv("http://www.google.com/robots.txt", "")
+	// if err != nil {
+	// t.Error("Received unexpected error when using random URL that should work")
+	// }
 }
 
 func TestNewFromTsv(t *testing.T) {
-	// TODO: Test with real values
+	tsvTeasServer := getTsvServer(append([][]string{testTsvTeasHeader}, testTsvTeas...))
+	defer tsvTeasServer.Close()
+
+	tsvEntriesServer := getTsvServer(append([][]string{testTsvEntriesHeader}, testTsvEntries...))
+	defer tsvEntriesServer.Close()
+
+	db, err := NewFromTsv(tsvTeasServer.URL, tsvEntriesServer.URL, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	teas, err := db.Teas(NewFilter())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(teas) != len(testTsvTeas) {
+		t.Fatalf("Expected %d teas but found %d", len(testTsvTeas), len(teas))
+	}
+
+	for _, tsv_tea := range testTsvTeas {
+		tea_id, _ := strconv.Atoi(tsv_tea[2])
+		tea, err := db.Tea(tea_id)
+		if err != nil {
+			teas, _ := db.Teas(NewFilter())
+			t.Fatalf("%s: %v", err, teas)
+		}
+		if _, err := isTsvEqualToTea(tsv_tea, &tea); err != nil {
+			t.Errorf("Tea object does not match expected: %s", err)
+		}
+	}
 
 	// Test with bad values
 	if _, err := NewFromTsv("", "", ""); err == nil {

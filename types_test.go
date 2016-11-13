@@ -406,6 +406,8 @@ func TestTeaMedian(t *testing.T) {
 		}
 
 		if median != tea.Median() {
+			t.Logf("Len: %d, ratings: %v", len(ratings), ratings)
+
 			t.Fatalf("Expected median of %d and found %d", median, tea.Median())
 		}
 	}
