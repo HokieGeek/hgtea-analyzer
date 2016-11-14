@@ -7,7 +7,7 @@ func ExamplePrintHeader() {
 		"T2": "%s",
 		"T3": "%3d",
 	}
-	testOpts := formatOpts{
+	testOpts := viewOptions{
 		delimeter: " ",
 		fields:    []string{"T1", "T2", "T3"},
 		porcelain: false,

@@ -11,13 +11,35 @@ import (
 	"time"
 )
 
-type formatOpts struct {
-	delimeter string
-	fields    []string
-	porcelain bool
+type databaseConfig struct {
+	dbType     string
+	teasUrl    string
+	journalUrl string
 }
 
-func printHeader(fields map[string]string, opts formatOpts) {
+type viewOptions struct {
+	delimeter string
+	porcelain bool
+	fields    []string
+}
+
+type options struct {
+	delimeter string
+	porcelain bool
+	fields    map[string][]string
+	dbCfg     databaseConfig
+	proxy     string
+	filter    *hgtealib.Filter
+	command   string
+}
+
+func newOptions() options {
+	var o options
+	o.fields = make(map[string][]string)
+	return o
+}
+
+func printHeader(fields map[string]string, opts viewOptions) {
 	re_lcalpha := regexp.MustCompile("[a-z]+")
 	re_dashnums := regexp.MustCompile("-?[0-9]+")
 	for i, field := range opts.fields {
@@ -35,7 +57,7 @@ func printHeader(fields map[string]string, opts formatOpts) {
 	}
 }
 
-func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
+func printTeas(teas map[int]hgtealib.Tea, opts viewOptions) {
 	fields := map[string]string{
 		"Id":      "%3d",
 		"Name":    "%-60s",
@@ -98,7 +120,7 @@ func printTeas(teas map[int]hgtealib.Tea, opts formatOpts) {
 	}
 }
 
-func printEntries(db *hgtealib.TeaDb, log []hgtealib.Entry, opts formatOpts) {
+func printEntries(db *hgtealib.TeaDb, log []hgtealib.Entry, opts viewOptions) {
 	fields := map[string]string{
 		"Time":       "%-21s",
 		"Tea":        "%-60s",
@@ -151,10 +173,17 @@ func printEntries(db *hgtealib.TeaDb, log []hgtealib.Entry, opts formatOpts) {
 	}
 }
 
-func main() {
-	teas_url := "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
-	log_url := "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
+func parseConfigFile(opts options, file string) (options, error) {
+	opts.dbCfg.teasUrl = "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
+	opts.dbCfg.journalUrl = "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
 
+	opts.fields["ls"] = []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"}
+	opts.fields["log"] = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"}
+	return opts, nil
+}
+
+func parseCommandLineArguments(opts options) (options, []string, error) {
+	databaseTypeStr := flag.String("dbType", "tsv", "The type of database that the URLs are pointing to")
 	proxyStr := flag.String("proxy", "", "Use the given proxy")
 
 	teaTypes := flag.String("types", "", "Comma-delimited list of tea types to select")
@@ -167,35 +196,63 @@ func main() {
 
 	flag.Parse()
 
-	filter := hgtealib.NewFilter()
-	if *stockedFlag {
-		filter.StockedOnly()
-	}
-	filter.Types(strings.Split(*teaTypes, ","))
+	opts.proxy = *proxyStr
 
-	db, err := hgtealib.NewFromTsv(teas_url, log_url, *proxyStr)
+	opts.dbCfg.dbType = *databaseTypeStr
+
+	opts.porcelain = *porcelainFlag
+
+	opts.delimeter = "\t"
+
+	opts.filter = hgtealib.NewFilter()
+	if *stockedFlag {
+		opts.filter.StockedOnly()
+	}
+	opts.filter.Types(strings.Split(*teaTypes, ","))
+
+	opts.command = flag.Arg(0)
+
+	if *fieldsStr != "*" {
+		opts.fields[opts.command] = strings.Split(*fieldsStr, ",")
+	}
+
+	return opts, flag.Args(), nil
+}
+
+func main() {
+	opts := newOptions()
+	opts, err := parseConfigFile(opts, "~/.hgteas.json")
+	if err != nil {
+		panic(err)
+	}
+	opts, _, err = parseCommandLineArguments(opts)
+	if err != nil {
+		panic(err)
+	}
+
+	var db *hgtealib.TeaDb
+	switch opts.dbCfg.dbType {
+	case "tsv":
+		db, err = hgtealib.NewFromTsv(opts.dbCfg.teasUrl, opts.dbCfg.journalUrl, opts.proxy)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fields := strings.Split(*fieldsStr, ",")
+	viewOpts := viewOptions{
+		delimeter: opts.delimeter,
+		porcelain: opts.porcelain,
+		fields:    opts.fields[opts.command],
+	}
 
-	command := flag.Arg(0)
-
-	switch {
-	case command == "ls":
-		if len(fields) == 1 && fields[0] == "*" {
-			fields = []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"}
-		}
-		teas, _ := db.Teas(filter)
-		printTeas(teas, formatOpts{delimeter: "\t", fields: fields, porcelain: *porcelainFlag})
-	case command == "log":
-		if len(fields) == 1 && fields[0] == "*" {
-			fields = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"}
-		}
-		log, _ := db.Log(filter)
-		printEntries(db, log, formatOpts{delimeter: "\t", fields: fields, porcelain: *porcelainFlag})
+	switch opts.command {
+	case "ls":
+		teas, _ := db.Teas(opts.filter)
+		printTeas(teas, viewOpts)
+	case "log":
+		log, _ := db.Log(opts.filter)
+		printEntries(db, log, viewOpts)
 	default:
-		log.Fatalf("Unrecognized command: %s\n", command)
+		log.Fatalf("Unrecognized command: %s\n", opts.command)
 	}
 }
