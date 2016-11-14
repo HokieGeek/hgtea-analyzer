@@ -51,7 +51,7 @@ func getSheetTsv(url, proxyAddr string) ([][]string, error) {
 
 func newEntryFromTsv(entry []string) (*Entry, error) {
 	if len(entry) < 11 {
-		return nil, errors.New("Invalid data")
+		return nil, errors.New("Data badly formatted")
 	}
 
 	e := new(Entry)
@@ -65,7 +65,6 @@ func newEntryFromTsv(entry []string) (*Entry, error) {
 	e.ParseSteepTime(entry[7])
 	dummy_int, _ := strconv.Atoi(entry[8])
 	e.SteepingVessel = VesselType(dummy_int)
-	// e.SteepingVessel, _ = strconv.Atoi(entry[8])
 	e.SteepingTemperature, _ = strconv.Atoi(entry[9])
 	if e.SteepingTemperature == 0 {
 		// TODO: make this value depend on the type (if green or oolong, for example)
@@ -159,13 +158,17 @@ func NewFromTsv(teas_url, log_url, proxyAddr string) (*TeaDb, error) {
 	}
 
 	// Add the journal entries
-	journal, err := getSheetTsv(log_url, proxyAddr)
+	journalTsv, err := getSheetTsv(log_url, proxyAddr)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(journalTsv) <= 0 {
+		return nil, errors.New("Did not retrieve any journal entries from the given URL")
+	}
+
 	entries := make([]*Entry, 0)
-	for _, entry := range journal[1:] {
+	for _, entry := range journalTsv[1:] {
 		e, err := newEntryFromTsv(entry)
 		if err != nil {
 			return nil, err

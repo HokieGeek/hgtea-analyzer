@@ -479,3 +479,55 @@ func TestNewFromTsv(t *testing.T) {
 		t.Error("Did not receive expected error on bad url value")
 	}
 }
+
+func TestNewFromTsvFailure(t *testing.T) {
+	noEntriesServer := getTsvServer([][]string{[]string{}})
+	defer noEntriesServer.Close()
+
+	if _, err := NewFromTsv(noEntriesServer.URL, noEntriesServer.URL, ""); err == nil {
+		t.Error("Did not receive expected error when no data from server")
+	}
+
+	tsvBadDataServer := getTsvServer([][]string{
+		[]string{"T0.1", "T0.2"},
+		[]string{"T1.1"},
+	})
+	defer tsvBadDataServer.Close()
+
+	tsvIncompleteDataServer := getTsvServer([][]string{
+		[]string{"T0.1", "T0.2"},
+		[]string{"T1.1", "T1.2"},
+	})
+	defer tsvIncompleteDataServer.Close()
+
+	tsvEntriesServer := getTsvServer(append([][]string{testTsvEntriesHeader}, testTsvEntries...))
+	defer tsvEntriesServer.Close()
+
+	// Should trigger nil when creating the tea struct
+	if _, err := NewFromTsv(tsvIncompleteDataServer.URL, tsvEntriesServer.URL, ""); err == nil {
+		t.Error("Did not receive expected error when incorrect number of tea fields")
+	}
+
+	// Should trigger nil when trying to retrieve data for the journal struct
+	if _, err := NewFromTsv(noEntriesServer.URL, "", ""); err == nil {
+		t.Error("Did not receive expected error when no valid journal server URL")
+	}
+
+	tsvTeasServer := getTsvServer(append([][]string{testTsvTeasHeader}, testTsvTeas...))
+	defer tsvTeasServer.Close()
+
+	// Should trigger nil when retrieving journal entries from incomplete data
+	if _, err := NewFromTsv(tsvTeasServer.URL, tsvIncompleteDataServer.URL, ""); err == nil {
+		t.Error("Did not receive expected error when no data from server")
+	}
+
+	// Should trigger nil when retrieving journal entries from an empty server
+	if _, err := NewFromTsv(tsvTeasServer.URL, noEntriesServer.URL, ""); err == nil {
+		t.Error("Did not receive expected error when no data from server")
+	}
+
+	// Should trigger nil when creating the journal struct // FIXME
+	if _, err := NewFromTsv(tsvTeasServer.URL, tsvBadDataServer.URL, ""); err == nil {
+		t.Error("Did not receive expected error when incorrect number of journal fields")
+	}
+}
