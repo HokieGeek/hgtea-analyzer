@@ -430,11 +430,24 @@ func TestGetSheetTsv(t *testing.T) {
 	if _, err := getSheetTsv(tsvBadServer.URL, ""); err == nil {
 		t.Error("Did not encounter expected error")
 	}
+}
 
-	// _, err = getSheetTsv("http://www.google.com/robots.txt", "")
-	// if err != nil {
-	// t.Error("Received unexpected error when using random URL that should work")
-	// }
+func TestGetSheetTsvProxy(t *testing.T) {
+	t.Skip("Umm... how?")
+
+	expectedData := [][]string{
+		[]string{"T0.1", "T0.2", "T0.3"},
+		[]string{"T1.1", "T1.2", ""},
+		[]string{"T2.1", "", ""},
+	}
+
+	tsvServer := getTsvServer(expectedData)
+	defer tsvServer.Close()
+
+	_, err := getSheetTsv(tsvServer.URL, "localhost:1000")
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestNewFromTsv(t *testing.T) {
@@ -526,7 +539,7 @@ func TestNewFromTsvFailure(t *testing.T) {
 		t.Error("Did not receive expected error when no data from server")
 	}
 
-	// Should trigger nil when creating the journal struct // FIXME
+	// Should trigger nil when creating the journal struct
 	if _, err := NewFromTsv(tsvTeasServer.URL, tsvBadDataServer.URL, ""); err == nil {
 		t.Error("Did not receive expected error when incorrect number of journal fields")
 	}
