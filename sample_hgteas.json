@@ -1,0 +1,13 @@
+{
+    "delimeter": "\t",
+    "porcelain": false,
+    "fields": {
+        "log": ["Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"],
+        "ls": ["Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"]
+    },
+    "dbCfg": {
+        "dbType": "tsv",
+        "teasUrl": "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv",
+        "journalUrl": "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
+    }
+}

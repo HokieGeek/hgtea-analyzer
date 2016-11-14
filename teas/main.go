@@ -3,20 +3,18 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/hokiegeek/hgtealib"
 	"log"
+	"os"
+	"os/user"
+	"path"
 	"regexp"
 	"strings"
 	"time"
 )
-
-type databaseConfig struct {
-	dbType     string
-	teasUrl    string
-	journalUrl string
-}
 
 type viewOptions struct {
 	delimeter string
@@ -25,18 +23,30 @@ type viewOptions struct {
 }
 
 type options struct {
-	delimeter string
-	porcelain bool
-	fields    map[string][]string
-	dbCfg     databaseConfig
-	proxy     string
-	filter    *hgtealib.Filter `json:"-"`
-	command   string           `json:"-"`
+	Delimeter string              `json:"delimeter"`
+	Porcelain bool                `json:"porcelain"`
+	Fields    map[string][]string `json:"fields"`
+	DbCfg     struct {
+		DbType     string `json:"dbType"`
+		TeasUrl    string `json:"teasUrl"`
+		JournalUrl string `json:"journalUrl"`
+	} `json:"dbCfg"`
+	Proxy   string           `json:"proxy"`
+	filter  *hgtealib.Filter `json:"-"`
+	command string           `json:"-"`
 }
 
-func newOptions() options {
-	var o options
-	o.fields = make(map[string][]string)
+func newOptions() *options {
+	o := new(options)
+	o.Delimeter = "\t"
+
+	o.DbCfg.DbType = "tsv"
+	o.DbCfg.TeasUrl = "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
+	o.DbCfg.JournalUrl = "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
+
+	o.Fields = make(map[string][]string)
+	o.Fields["ls"] = []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"}
+	o.Fields["log"] = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"}
 	return o
 }
 
@@ -174,22 +184,21 @@ func printEntries(db *hgtealib.TeaDb, log []hgtealib.Entry, opts viewOptions) {
 	}
 }
 
-func parseConfigFile(opts options, file string) (options, error) {
+func parseConfigFile(opts *options, path string) (*options, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Did not find file at: %s", path))
+	}
 
-	opts.dbCfg.teasUrl = "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
-	opts.dbCfg.journalUrl = "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
-
-	opts.fields["ls"] = []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"}
-	opts.fields["log"] = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"}
-
-	tmp, _ := json.Marshal(opts)
-	fmt.Println(string(tmp))
+	if err := json.NewDecoder(file).Decode(&opts); err != nil {
+		return nil, errors.New(fmt.Sprintf("Encountered error decoding '%s': %s", path, err))
+	}
 
 	return opts, nil
 }
 
-func parseCommandLineArguments(opts options) (options, []string, error) {
-	databaseTypeStr := flag.String("dbType", "tsv", "The type of database that the URLs are pointing to")
+func parseCommandLineArguments(opts *options) (*options, []string, error) {
+	databaseTypeStr := flag.String("dbType", "", "The type of database that the URLs are pointing to")
 	proxyStr := flag.String("proxy", "", "Use the given proxy")
 
 	teaTypes := flag.String("types", "", "Comma-delimited list of tea types to select")
@@ -202,13 +211,15 @@ func parseCommandLineArguments(opts options) (options, []string, error) {
 
 	flag.Parse()
 
-	opts.proxy = *proxyStr
+	if *proxyStr != "" {
+		opts.Proxy = *proxyStr
+	}
 
-	opts.dbCfg.dbType = *databaseTypeStr
+	if *databaseTypeStr != "" {
+		opts.DbCfg.DbType = *databaseTypeStr
+	}
 
-	opts.porcelain = *porcelainFlag
-
-	opts.delimeter = "\t"
+	opts.Porcelain = *porcelainFlag
 
 	opts.filter = hgtealib.NewFilter()
 	if *stockedFlag {
@@ -219,15 +230,20 @@ func parseCommandLineArguments(opts options) (options, []string, error) {
 	opts.command = flag.Arg(0)
 
 	if *fieldsStr != "*" {
-		opts.fields[opts.command] = strings.Split(*fieldsStr, ",")
+		opts.Fields[opts.command] = strings.Split(*fieldsStr, ",")
 	}
 
 	return opts, flag.Args(), nil
 }
 
 func main() {
+	usr, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
 	opts := newOptions()
-	opts, err := parseConfigFile(opts, "~/.hgteas.json")
+	opts, err = parseConfigFile(opts, path.Join(usr.HomeDir, ".hgteas.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -237,18 +253,18 @@ func main() {
 	}
 
 	var db *hgtealib.TeaDb
-	switch opts.dbCfg.dbType {
+	switch opts.DbCfg.DbType {
 	case "tsv":
-		db, err = hgtealib.NewFromTsv(opts.dbCfg.teasUrl, opts.dbCfg.journalUrl, opts.proxy)
+		db, err = hgtealib.NewFromTsv(opts.DbCfg.TeasUrl, opts.DbCfg.JournalUrl, opts.Proxy)
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	viewOpts := viewOptions{
-		delimeter: opts.delimeter,
-		porcelain: opts.porcelain,
-		fields:    opts.fields[opts.command],
+		delimeter: opts.Delimeter,
+		porcelain: opts.Porcelain,
+		fields:    opts.Fields[opts.command],
 	}
 
 	switch opts.command {
