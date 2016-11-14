@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/hokiegeek/hgtealib"
@@ -29,8 +30,8 @@ type options struct {
 	fields    map[string][]string
 	dbCfg     databaseConfig
 	proxy     string
-	filter    *hgtealib.Filter
-	command   string
+	filter    *hgtealib.Filter `json:"-"`
+	command   string           `json:"-"`
 }
 
 func newOptions() options {
@@ -174,11 +175,16 @@ func printEntries(db *hgtealib.TeaDb, log []hgtealib.Entry, opts viewOptions) {
 }
 
 func parseConfigFile(opts options, file string) (options, error) {
+
 	opts.dbCfg.teasUrl = "https://docs.google.com/spreadsheets/d/1-U45bMxRE4_n3hKRkTPTWHTkVKC8O3zcSmkjEyYFYOo/pub?output=tsv"
 	opts.dbCfg.journalUrl = "https://docs.google.com/spreadsheets/d/1pHXWycR9_luPdHm32Fb2P1Pp7l29Vni3uFH_q3TsdbU/pub?output=tsv"
 
 	opts.fields["ls"] = []string{"Id", "Name", "Type", "Year", "Flush", "Origin", "Entries", "Avg", "Median", "Mode"}
 	opts.fields["log"] = []string{"Time", "Tea", "Steep Time", "Rating", "Fixins", "Vessel"}
+
+	tmp, _ := json.Marshal(opts)
+	fmt.Println(string(tmp))
+
 	return opts, nil
 }
 
