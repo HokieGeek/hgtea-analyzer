@@ -293,7 +293,7 @@ func isTsvEqualToTea(expected []string, received *Tea) (bool, error) {
 	}
 
 	dummy_int, _ = strconv.Atoi(expected[21])
-	if dummy_int != received.Purchased.Packaging {
+	if TeaPackagingType(dummy_int) != received.Purchased.Packaging {
 		return false, errors.New(fmt.Sprintf("Packaging field '%s' did not match expected '%s'", received.Purchased.Packaging, expected[21]))
 	}
 

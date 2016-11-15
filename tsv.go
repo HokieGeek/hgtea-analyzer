@@ -128,9 +128,13 @@ func newTeaFromTsv(data []string) (*Tea, error) {
 		}
 	}
 	if data[21] != "" {
-		if t.Purchased.Packaging, err = strconv.Atoi(data[21]); err != nil {
+		dummy_int, err := strconv.Atoi(data[21])
+		if err != nil {
 			return nil, err
 		}
+		t.Purchased.Packaging = TeaPackagingType(dummy_int)
+	} else {
+		t.Purchased.Packaging = Unknown
 	}
 
 	return t, nil

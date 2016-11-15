@@ -70,23 +70,23 @@ func printHeader(fields map[string]string, opts viewOptions) {
 
 func printTeas(teas map[int]hgtealib.Tea, opts viewOptions) {
 	fields := map[string]string{
-		"Id":      "%3d",
-		"Name":    "%-60s",
-		"Type":    "%-15s",
-		"Year":    "%d",
-		"Flush":   "%9s",
-		"Origin":  "%30s",
-		"Size":    "%12s",
-		"Entries": "%7d",
-		"Avg":     "%6d",
-		"Median":  "%6d",
-		"Mode":    "%6d",
+		"Id":        "%3d",
+		"Name":      "%-60s",
+		"Type":      "%-15s",
+		"Year":      "%d",
+		"Flush":     "%9s",
+		"Origin":    "%30s",
+		"Size":      "%12s",
+		"Entries":   "%7d",
+		"Avg":       "%6d",
+		"Median":    "%6d",
+		"Mode":      "%6d",
+		"Packaging": "%10s",
 		// Storage.Stocked bool
 		// Storage.Aging   bool
 		// Purchased.Location  string
 		// Purchased.Date      string
 		// Purchased.Price     float64
-		// Purchased.Packaging int
 		// LeafGrade     string
 	}
 
@@ -125,6 +125,8 @@ func printTeas(teas map[int]hgtealib.Tea, opts viewOptions) {
 				fmt.Printf(fields[field], tea.Median())
 			case field == "Mode":
 				fmt.Printf(fields[field], tea.Mode())
+			case field == "Packaging":
+				fmt.Printf(fields[field], tea.Purchased.Packaging.String())
 			}
 		}
 		fmt.Println()

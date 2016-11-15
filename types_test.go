@@ -132,7 +132,7 @@ func createRandomTea(withEntries bool) *Tea {
 	t.Purchased.Location = createRandomString(1)
 	t.Purchased.Date = time.Now().Format("1/02/2009")
 	t.Purchased.Price = r.Float64()
-	t.Purchased.Packaging = r.Intn(10)
+	t.Purchased.Packaging = TeaPackagingType(r.Intn(7))
 	t.Size = createRandomString(1)
 	t.LeafGrade = createRandomString(1)
 
@@ -204,6 +204,18 @@ func TestTeaOriginString(t *testing.T) {
 
 	if testTeas[1].Origin.String() != testTeas[1].Origin.Country {
 		t.Errorf("Expected origin string '%s' but found '%s'", testTeas[1].Origin.Country, testTeas[0].Origin.String())
+	}
+}
+
+func TestTeaPackagingString(t *testing.T) {
+	for _, v := range []TeaPackagingType{LooseLeaf, Bagged, Tuo, Beeng, Brick, Mushroom, Square} {
+		if v.String() == "" {
+			t.Error("TeaPackagingType type did not return a useful string")
+		}
+	}
+
+	if v := TeaPackagingType(-1).String(); v != "" {
+		t.Errorf("Expected empty string but found '%s' instead", v)
 	}
 }
 

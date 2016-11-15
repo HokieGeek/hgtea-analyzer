@@ -125,11 +125,6 @@ func (f TeaFixin) String() string {
 	}
 }
 
-/*
-var TeaProductRatings = ["Value", "Leaf Aroma", "Brewed Aroma"];
-var TeaPackagingTypes = ["Loose Leaf", "Bagged", "Tuo", "Beeng", "Brick", "Mushroom", "Square"];
-*/
-
 // Timestamp       Date    Time    Tea     Rating  Comments        Pictures        Steep Time      Steeping Vessel Steep Temperature       Session Instance        Fixins
 type Entry struct {
 	Tea                 int
@@ -263,11 +258,47 @@ type TeaStorageState struct {
 	Aging   bool
 }
 
+type TeaPackagingType int
+
+const (
+	LooseLeaf TeaPackagingType = 0 + iota
+	Bagged
+	Tuo
+	Beeng
+	Brick
+	Mushroom
+	Square
+	Unknown
+)
+
+func (v TeaPackagingType) String() string {
+	switch v {
+	case LooseLeaf:
+		return "LooseLeaf"
+	case Bagged:
+		return "Bagged"
+	case Tuo:
+		return "Tuo"
+	case Beeng:
+		return "Beeng"
+	case Brick:
+		return "Brick"
+	case Mushroom:
+		return "Mushroom"
+	case Square:
+		return "Square"
+	case Unknown:
+		return "Unknown"
+	default:
+		return ""
+	}
+}
+
 type TeaPurchaseInfo struct {
 	Location  string
 	Date      string
 	Price     float64
-	Packaging int
+	Packaging TeaPackagingType
 }
 
 type Tea struct {
@@ -285,6 +316,7 @@ type Tea struct {
 	average       int
 	median        int
 	mode          int
+	// var TeaProductRatings = ["Value", "Leaf Aroma", "Brewed Aroma"];
 }
 
 func (t *Tea) Add(entry Entry) {
