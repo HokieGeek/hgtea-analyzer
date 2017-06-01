@@ -1,4 +1,4 @@
-image: docker:git
+image: docker:golang:alpine
 services:
     - docker:dind
 
