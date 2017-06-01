@@ -11,6 +11,7 @@ stages:
 
 before_script:
     - apk add --update git
+    - ln -s /builds /go/src/github.com
       #     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
 
 test_job:
