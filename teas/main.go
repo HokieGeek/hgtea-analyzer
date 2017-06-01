@@ -6,7 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"gitlab.com/hokiegeek/hgtealib"
+	"github.com/hokiegeek/hgtealib"
 	"log"
 	"os"
 	"os/user"
