@@ -15,7 +15,7 @@ stages:
 test_job:
     stage: test
     script:
-        - go test ./..
+        - go test .
 
           # build_image_job:
           #     stage: build_image
