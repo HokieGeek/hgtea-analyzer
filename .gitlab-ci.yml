@@ -9,7 +9,8 @@ stages:
     - test
       #     - build_image
 
-      # before_script:
+before_script:
+    - apk add --update git
       #     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
 
 test_job:
