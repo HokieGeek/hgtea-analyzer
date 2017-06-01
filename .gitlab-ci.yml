@@ -1,9 +1,9 @@
 stages:
     - test
-      #     - build_image
+    - build_image
 
-        # variables:
-        #     IMAGE_NAME: registry.gitlab.com/hokiegeek/hgtealib:$CI_BUILD_REF_NAME
+variables:
+    IMAGE_NAME: registry.gitlab.com/hokiegeek/hgtealib:$CI_BUILD_REF_NAME
 
 test_job:
     image: golang:alpine
@@ -16,12 +16,12 @@ test_job:
         - go get -d -v .
         - go test -v .
 
-          # build_image_job:
-          #     stage: build_image
-
-        # services:
-        #     - docker:dind
-          #     script:
-      #     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-          #         - docker build -t $IMAGE_NAME .
-          #         - docker push $IMAGE_NAME
+build_image_job:
+    image: docker:git
+    stage: build_image
+    services:
+        - docker:dind
+    script:
+        - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+        - docker build -t $IMAGE_NAME .
+        - docker push $IMAGE_NAME
