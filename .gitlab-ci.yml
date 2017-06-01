@@ -10,9 +10,9 @@ test_job:
     stage: test
     script:
         - apk add --update git
-        - mkdir -p /go/src/github.com
-        - ln -s /builds/HokieGeek /go/src/github.com/hokiegeek
-        - cd /go/src/github.com/hokiegeek/hgtealib
+        - mkdir -p /go/src/gitlab.com
+        - ln -s /builds/HokieGeek /go/src/gitlab.com/hokiegeek
+        - cd /go/src/gitlab.com/hokiegeek/hgtealib
         - go get -d -v .
         - go test -covermode=count -v .
 
