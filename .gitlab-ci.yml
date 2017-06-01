@@ -14,9 +14,7 @@ test_job:
         - ln -s /builds/HokieGeek /go/src/github.com/hokiegeek
         - cd /go/src/github.com/hokiegeek/hgtealib
         - go get -d -v .
-        - go test -v .
-        - go test -covermode=count -coverprofile=/tmp/coverage -v .
-        - go tool cover -func=/tmp/coverage
+        - go test -covermode=count -v .
 
 build_image_job:
     image: docker:git
