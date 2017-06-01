@@ -1,24 +1,24 @@
 image: golang:alpine
-services:
-    - docker:dind
+# services:
+#     - docker:dind
 
-variables:
-    IMAGE_NAME: registry.gitlab.com/hokiegeek/hgtealib:$CI_BUILD_REF_NAME
+# variables:
+#     IMAGE_NAME: registry.gitlab.com/hokiegeek/hgtealib:$CI_BUILD_REF_NAME
 
 stages:
     - test
-    - build_image
+      #     - build_image
 
-before_script:
-    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+      # before_script:
+      #     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
 
 test_job:
     stage: test
     script:
         - go test ./..
 
-build_image_job:
-    stage: build_image
-    script:
-        - docker build -t $IMAGE_NAME .
-        - docker push $IMAGE_NAME
+          # build_image_job:
+          #     stage: build_image
+          #     script:
+          #         - docker build -t $IMAGE_NAME .
+          #         - docker push $IMAGE_NAME
