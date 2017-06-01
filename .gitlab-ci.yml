@@ -2,11 +2,15 @@ stages:
     - test
       #     - build_image
 
+        # variables:
+        #     IMAGE_NAME: registry.gitlab.com/hokiegeek/hgtealib:$CI_BUILD_REF_NAME
+
 test_job:
     image: golang:alpine
     stage: test
     script:
         - apk add --update git
+        - mkdir -p /go/src/github.com
         - ln -s /builds/HokieGeek /go/src/github.com/hokiegeek
         - cd /go/src/github.com/hokiegeek/hgtealib
         - go get -d -v .
@@ -14,8 +18,6 @@ test_job:
 
           # build_image_job:
           #     stage: build_image
-        # variables:
-        #     IMAGE_NAME: registry.gitlab.com/hokiegeek/hgtealib:$CI_BUILD_REF_NAME
 
         # services:
         #     - docker:dind
